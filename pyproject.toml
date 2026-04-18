@@ -12,4 +12,5 @@ dependencies = [
     "matplotlib>=3.8",
     "pandas>=2.1",
     "httpx>=0.27",
+    "openrouter>=0.9.1",
 ]
