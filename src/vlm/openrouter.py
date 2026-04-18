@@ -5,7 +5,10 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from dotenv import load_dotenv
 from openrouter import OpenRouter
+
+load_dotenv()
 from openrouter.utils.retries import BackoffStrategy, RetryConfig
 
 SALIENCY_PROMPT = """\
