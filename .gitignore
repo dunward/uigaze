@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Data and results
+data/
+results/
+
+# Environment
+.env
