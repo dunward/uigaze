@@ -170,7 +170,7 @@ async def predict_batch_async(
     image_paths: list[Path],
     model: str = "gpt-5.4-mini",
     api_key: str | None = None,
-    concurrency: int = 5,
+    concurrency: int = 10,
 ) -> dict[str, list[GazePoint]]:
     """Run saliency prediction on multiple images concurrently.
 
@@ -205,7 +205,7 @@ def predict_batch(
     image_paths: list[Path],
     model: str = "gpt-5.4-mini",
     api_key: str | None = None,
-    concurrency: int = 5,
+    concurrency: int = 10,
 ) -> dict[str, list[GazePoint]]:
     """Run saliency prediction on multiple images concurrently (sync wrapper)."""
     return asyncio.run(
