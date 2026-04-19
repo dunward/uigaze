@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import json
 import os
@@ -7,9 +8,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from openrouter import OpenRouter
+from openrouter.utils.retries import BackoffStrategy, RetryConfig
 
 load_dotenv()
-from openrouter.utils.retries import BackoffStrategy, RetryConfig
 
 SALIENCY_PROMPT = """\
 You are an expert in visual attention and UI design.
@@ -90,21 +91,24 @@ def _get_client(api_key: str | None = None) -> OpenRouter:
     )
 
 
+def _build_messages(image_uri: str) -> list[dict]:
+    return [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": SALIENCY_PROMPT},
+                {"type": "image_url", "image_url": {"url": image_uri}},
+            ],
+        }
+    ]
+
+
 def predict_saliency(
     image_path: str | Path,
     model: str = "gpt-5.4-mini",
     api_key: str | None = None,
 ) -> list[GazePoint]:
-    """Call a VLM via OpenRouter to predict saliency points.
-
-    Args:
-        image_path: Path to the UI screenshot.
-        model: Model short name (e.g. "gpt-5.4-mini") or full OpenRouter model ID.
-        api_key: OpenRouter API key. Falls back to OPENROUTER_API_KEY env var.
-
-    Returns:
-        List of GazePoint predictions.
-    """
+    """Call a VLM via OpenRouter to predict saliency points (sync)."""
     image_path = Path(image_path)
     model_id = MODELS.get(model, model)
     image_uri = _encode_image(image_path)
@@ -112,31 +116,86 @@ def predict_saliency(
     with _get_client(api_key) as client:
         response = client.chat.send(
             model=model_id,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": SALIENCY_PROMPT},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": image_uri},
-                        },
-                    ],
-                }
-            ],
+            messages=_build_messages(image_uri),
             temperature=0.1,
             max_tokens=4096,
         )
 
-    content = response.choices[0].message.content
-    return _parse_gaze_points(content)
+    return _parse_gaze_points(response.choices[0].message.content)
+
+
+async def predict_saliency_async(
+    image_path: str | Path,
+    model: str = "gpt-5.4-mini",
+    api_key: str | None = None,
+) -> list[GazePoint]:
+    """Call a VLM via OpenRouter to predict saliency points (async)."""
+    image_path = Path(image_path)
+    model_id = MODELS.get(model, model)
+    image_uri = _encode_image(image_path)
+
+    async with _get_client(api_key) as client:
+        response = await client.chat.send_async(
+            model=model_id,
+            messages=_build_messages(image_uri),
+            temperature=0.1,
+            max_tokens=4096,
+        )
+
+    return _parse_gaze_points(response.choices[0].message.content)
+
+
+async def predict_batch_async(
+    image_paths: list[Path],
+    model: str = "gpt-5.4-mini",
+    api_key: str | None = None,
+    concurrency: int = 5,
+) -> dict[str, list[GazePoint]]:
+    """Run saliency prediction on multiple images concurrently.
+
+    Args:
+        image_paths: List of image paths.
+        model: Model short name or full OpenRouter model ID.
+        api_key: OpenRouter API key.
+        concurrency: Max parallel requests.
+
+    Returns:
+        Dict mapping image filename (stem) to gaze points.
+    """
+    semaphore = asyncio.Semaphore(concurrency)
+    results = {}
+
+    async def _predict_one(path: Path, idx: int):
+        async with semaphore:
+            print(f"  [{idx+1}/{len(image_paths)}] {path.name} ({model})")
+            try:
+                points = await predict_saliency_async(path, model=model, api_key=api_key)
+                results[path.stem] = points
+            except Exception as e:
+                print(f"    ERROR: {e}")
+                results[path.stem] = []
+
+    tasks = [_predict_one(p, i) for i, p in enumerate(image_paths)]
+    await asyncio.gather(*tasks)
+    return results
+
+
+def predict_batch(
+    image_paths: list[Path],
+    model: str = "gpt-5.4-mini",
+    api_key: str | None = None,
+    concurrency: int = 5,
+) -> dict[str, list[GazePoint]]:
+    """Run saliency prediction on multiple images concurrently (sync wrapper)."""
+    return asyncio.run(
+        predict_batch_async(image_paths, model=model, api_key=api_key, concurrency=concurrency)
+    )
 
 
 def _parse_gaze_points(content: str) -> list[GazePoint]:
     """Parse VLM response text into GazePoint list."""
     text = content.strip()
 
-    # Extract JSON array from response (handle markdown code blocks or extra text)
     start = text.find("[")
     end = text.rfind("]") + 1
     if start >= 0 and end > start:
@@ -152,30 +211,3 @@ def _parse_gaze_points(content: str) -> list[GazePoint]:
         gaze_points.append(GazePoint(x=x, y=y, intensity=intensity))
 
     return gaze_points
-
-
-def predict_batch(
-    image_paths: list[Path],
-    model: str = "gpt-5.4-mini",
-    api_key: str | None = None,
-    delay: float = 1.0,
-) -> dict[str, list[GazePoint]]:
-    """Run saliency prediction on multiple images with rate limiting.
-
-    Returns:
-        Dict mapping image filename (stem) to gaze points.
-    """
-    results = {}
-    for i, path in enumerate(image_paths):
-        print(f"  [{i+1}/{len(image_paths)}] {path.name} ({model})")
-        try:
-            points = predict_saliency(path, model=model, api_key=api_key)
-            results[path.stem] = points
-        except Exception as e:
-            print(f"    ERROR: {e}")
-            results[path.stem] = []
-
-        if i < len(image_paths) - 1:
-            time.sleep(delay)
-
-    return results

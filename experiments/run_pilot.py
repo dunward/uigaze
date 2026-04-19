@@ -10,7 +10,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.data_loader import load_dataset, sample_pilot
-from src.vlm.openrouter import predict_saliency, MODELS
+from src.vlm.openrouter import predict_batch, MODELS
 from src.saliency.generator import generate_saliency_map
 from src.metrics.evaluator import evaluate_all
 
@@ -31,6 +31,7 @@ def run_pilot(
     data_dir: str = "data",
     n_per_category: int = 10,
     n_runs: int = 10,
+    concurrency: int = 5,
     models: list[str] | None = None,
     output_dir: str = "results",
 ):
@@ -46,6 +47,7 @@ def run_pilot(
     pilot = sample_pilot(dataset, n_per_category=n_per_category)
     print(f"Pilot: {len(pilot)} images x {len(models)} models x {n_runs} runs")
     print(f"Total API calls: {len(pilot) * len(models) * n_runs}")
+    print(f"Concurrency: {concurrency}")
 
     categories = sorted(set(s.category for s in pilot))
     for cat in categories:
@@ -61,13 +63,15 @@ def run_pilot(
             print(f"Model: {model_name} | Run {run}/{n_runs}")
             print(f"{'='*60}")
 
-            for i, sample in enumerate(pilot):
-                print(f"  [{i+1}/{len(pilot)}] {sample.image_id} ({sample.category})")
+            image_paths = [s.image_path for s in pilot]
+            predictions = predict_batch(
+                image_paths, model=model_name, concurrency=concurrency
+            )
 
-                try:
-                    points = predict_saliency(sample.image_path, model=model_name)
-                except Exception as e:
-                    print(f"    ERROR: {e}")
+            for sample in pilot:
+                points = predictions.get(sample.image_path.stem, [])
+                if not points:
+                    print(f"  SKIP {sample.image_id} (no predictions)")
                     continue
 
                 gt = load_ground_truth(sample.heatmap_path)
@@ -135,6 +139,8 @@ if __name__ == "__main__":
     parser.add_argument("--n-runs", type=int, default=10)
     parser.add_argument("--models", nargs="+", default=None,
                         help=f"Options: {list(MODELS.keys())}")
+    parser.add_argument("--concurrency", type=int, default=5,
+                        help="Max parallel API requests")
     parser.add_argument("--output-dir", default="results")
     args = parser.parse_args()
 
@@ -142,6 +148,7 @@ if __name__ == "__main__":
         data_dir=args.data_dir,
         n_per_category=args.n_per_category,
         n_runs=args.n_runs,
+        concurrency=args.concurrency,
         models=args.models,
         output_dir=args.output_dir,
     )
