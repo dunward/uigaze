@@ -41,41 +41,40 @@ def save_predictions(predictions, model_name, run, output_dir):
         path.write_text(json.dumps(data, indent=2))
 
 
-def save_best_worst_images(df, pilot_samples, output_dir):
+def save_best_worst_images(image_avg, pilot_samples, output_dir):
     """Save comparison images for best/worst CC per model x category."""
     img_dir = output_dir / "images"
     img_dir.mkdir(parents=True, exist_ok=True)
 
     samples_by_id = {s.image_id: s for s in pilot_samples}
 
-    # Use mean CC across runs per (model, category, image_id)
-    grouped = df.groupby(["model", "category", "image_id"])["CC"].mean().reset_index()
+    from src.vlm.openrouter import GazePoint
 
-    for (model, category), group in grouped.groupby(["model", "category"]):
-        for label, idx in [("best", group["CC"].idxmax()), ("worst", group["CC"].idxmin())]:
+    for (model, category), group in image_avg.groupby(["model", "category"]):
+        for label, idx in [("best", group["CC_mean"].idxmax()), ("worst", group["CC_mean"].idxmin())]:
             row = group.loc[idx]
-            sample = samples_by_id.get(row["image_id"])
+            image_id = row["image_id"]
+            sample = samples_by_id.get(image_id)
             if not sample:
                 continue
 
-            # Load the first run's prediction for this image
-            pred_path = output_dir / "predictions" / model / f"{row['image_id']}_run01.json"
+            pred_path = output_dir / "predictions" / model / f"{image_id}_run01.json"
             if not pred_path.exists():
                 continue
 
             points_data = json.loads(pred_path.read_text())
-            from src.vlm.openrouter import GazePoint
             points = [GazePoint(**p) for p in points_data]
 
             gt = load_ground_truth(sample.heatmap_path)
             h, w = gt.shape
             pred = generate_saliency_map(points, width=w, height=h)
 
-            out_path = img_dir / f"{model}_{category}_{label}.png"
+            cc = row["CC_mean"]
+            out_path = img_dir / f"{model}_{category}_{label}_cc{cc:.3f}.png"
             plot_saliency_comparison(
                 sample.image_path, pred, gt, out_path, model_name=model
             )
-            print(f"  Saved {label}: {out_path}")
+            print(f"  {label} ({category}): CC={cc:.3f} → {out_path.name}")
 
 
 def run_pilot(
@@ -176,7 +175,7 @@ def run_pilot(
 
     # --- Best/worst comparison images ---
     print("\nGenerating best/worst comparison images...")
-    save_best_worst_images(df, pilot, output_path)
+    save_best_worst_images(image_avg, pilot, output_path)
 
     # --- Print ---
     print(f"\n{'='*60}")
