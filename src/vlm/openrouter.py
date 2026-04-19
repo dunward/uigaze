@@ -8,6 +8,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from openrouter import OpenRouter
+from openrouter.components.formatjsonobjectconfig import FormatJSONObjectConfig
 from openrouter.components.providerpreferences import ProviderPreferences
 from openrouter.utils.retries import BackoffStrategy, RetryConfig
 
@@ -131,6 +132,8 @@ def predict_saliency(
     image_uri = _encode_image(image_path)
 
     provider = _get_provider_prefs(model_id)
+    json_format = FormatJSONObjectConfig(type="json_object")
+
     with _get_client(api_key) as client:
         response = client.chat.send(
             model=model_id,
@@ -138,6 +141,7 @@ def predict_saliency(
             temperature=0.1,
             max_tokens=4096,
             provider=provider,
+            response_format=json_format,
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
@@ -154,6 +158,8 @@ async def predict_saliency_async(
     image_uri = _encode_image(image_path)
 
     provider = _get_provider_prefs(model_id)
+    json_format = FormatJSONObjectConfig(type="json_object")
+
     async with _get_client(api_key) as client:
         response = await client.chat.send_async(
             model=model_id,
@@ -161,6 +167,7 @@ async def predict_saliency_async(
             temperature=0.1,
             max_tokens=4096,
             provider=provider,
+            response_format=json_format,
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
@@ -217,12 +224,18 @@ def _parse_gaze_points(content: str) -> list[GazePoint]:
     """Parse VLM response text into GazePoint list."""
     text = content.strip()
 
-    start = text.find("[")
-    end = text.rfind("]") + 1
-    if start >= 0 and end > start:
-        text = text[start:end]
+    parsed = json.loads(text)
 
-    points_data = json.loads(text)
+    # Handle both raw array and wrapped object (e.g. {"gaze_points": [...]})
+    if isinstance(parsed, list):
+        points_data = parsed
+    elif isinstance(parsed, dict):
+        # Find the first list value in the dict
+        points_data = next(
+            (v for v in parsed.values() if isinstance(v, list)), []
+        )
+    else:
+        raise ValueError(f"Unexpected JSON type: {type(parsed)}")
 
     gaze_points = []
     for p in points_data:
