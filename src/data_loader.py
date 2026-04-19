@@ -22,12 +22,14 @@ def load_dataset(
 
     Expected data_dir structure:
         data/
-        ├── images/           # UI screenshots (1920x1200)
+        ├── images/                        # UI screenshots (1920x1200)
         ├── saliency_maps/
-        │   ├── 1s/
-        │   ├── 3s/
-        │   └── 7s/
-        └── info.csv          # image_id, category, ...
+        │   ├── heatmaps_{1s,3s,7s}/       # continuous heatmaps
+        │   ├── fixmaps_{1s,3s,7s}/        # binary fixation maps
+        │   └── overlay_heatmaps_{1s,3s,7s}/
+        ├── scanpaths/
+        ├── eyetracker_logs/
+        └── image_types.csv                # semicolon-separated metadata
 
     Args:
         data_dir: Path to the UEyes data directory.
@@ -38,32 +40,32 @@ def load_dataset(
         List of Sample objects with matched image/heatmap pairs.
     """
     data_dir = Path(data_dir)
-    info_path = data_dir / "info.csv"
+    info_path = data_dir / "image_types.csv"
 
     if not info_path.exists():
         raise FileNotFoundError(
-            f"info.csv not found at {info_path}. "
+            f"image_types.csv not found at {info_path}. "
             "Please download the UEyes dataset and place it in the data/ directory."
         )
 
-    info = pd.read_csv(info_path)
+    info = pd.read_csv(info_path, sep=";")
 
     if categories:
-        info = info[info["category"].isin(categories)]
+        info = info[info["Category"].isin(categories)]
 
     images_dir = data_dir / "images"
-    heatmaps_dir = data_dir / "saliency_maps" / duration
+    heatmaps_dir = data_dir / "saliency_maps" / f"heatmaps_{duration}"
 
     samples = []
     for _, row in info.iterrows():
-        image_id = str(row["image_id"])
-        category = row["category"]
+        image_name = str(row["Image Name"])
+        image_id = Path(image_name).stem
+        category = row["Category"]
 
-        # Try common image extensions
-        image_path = _find_image(images_dir, image_id)
-        heatmap_path = _find_image(heatmaps_dir, image_id)
+        image_path = images_dir / image_name
+        heatmap_path = heatmaps_dir / image_name
 
-        if image_path and heatmap_path:
+        if image_path.exists() and heatmap_path.exists():
             samples.append(
                 Sample(
                     image_path=image_path,
@@ -99,14 +101,3 @@ def sample_pilot(
         pilot.extend(rng.sample(items, n))
 
     return pilot
-
-
-def _find_image(directory: Path, image_id: str) -> Path | None:
-    """Find an image file by ID, trying common extensions."""
-    for ext in (".png", ".jpg", ".jpeg", ".bmp", ".tiff"):
-        path = directory / f"{image_id}{ext}"
-        if path.exists():
-            return path
-    # Also try without extension matching (glob)
-    matches = list(directory.glob(f"{image_id}.*"))
-    return matches[0] if matches else None
