@@ -77,18 +77,20 @@ def save_best_worst_images(image_avg, pilot_samples, output_dir):
             print(f"  {label} ({category}): CC={cc:.3f} → {out_path.name}")
 
 
+OUTPUT_DIR = Path(__file__).parent.parent / "results" / "pilot"
+
+
 def run_pilot(
     data_dir: str = "data",
     n_per_category: int = 10,
     n_runs: int = 10,
     concurrency: int = 10,
     models: list[str] | None = None,
-    output_dir: str = "results",
 ):
     if models is None:
         models = list(MODELS.keys())
 
-    output_path = Path(output_dir)
+    output_path = OUTPUT_DIR
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Load dataset and sample pilot subset
@@ -104,11 +106,25 @@ def run_pilot(
         count = sum(1 for s in pilot if s.category == cat)
         print(f"  {cat}: {count} images")
 
-    # --- Raw results ---
-    all_results = []
+    # --- Run experiments per model ---
+    raw_dir = output_path / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
 
     for model_name in models:
+        model_csv = raw_dir / f"{model_name}.csv"
+
+        # Resume: check which runs are already completed
+        completed_runs = set()
+        if model_csv.exists():
+            existing = pd.read_csv(model_csv)
+            completed_runs = set(existing["run"].unique())
+            print(f"\nResuming {model_name}: runs {sorted(completed_runs)} already done")
+
         for run in range(1, n_runs + 1):
+            if run in completed_runs:
+                print(f"\n  Skipping {model_name} run {run} (already done)")
+                continue
+
             print(f"\n{'='*60}")
             print(f"Model: {model_name} | Run {run}/{n_runs}")
             print(f"{'='*60}")
@@ -121,6 +137,8 @@ def run_pilot(
             # Save raw predictions
             save_predictions(predictions, model_name, run, output_path)
 
+            # Compute metrics for this run
+            run_results = []
             for sample in pilot:
                 points = predictions.get(sample.image_path.stem, [])
                 if not points:
@@ -132,7 +150,7 @@ def run_pilot(
                 pred = generate_saliency_map(points, width=w, height=h)
                 metrics = evaluate_all(pred, gt)
 
-                all_results.append({
+                run_results.append({
                     "model": model_name,
                     "run": run,
                     "image_id": sample.image_id,
@@ -141,12 +159,18 @@ def run_pilot(
                     **metrics,
                 })
 
-    df = pd.DataFrame(all_results)
+            # Append to per-model CSV
+            run_df = pd.DataFrame(run_results)
+            if model_csv.exists():
+                run_df.to_csv(model_csv, mode="a", header=False, index=False)
+            else:
+                run_df.to_csv(model_csv, index=False)
 
-    # --- Save raw metrics ---
-    raw_path = output_path / "raw_results.csv"
-    df.to_csv(raw_path, index=False)
-    print(f"\nRaw results saved to {raw_path}")
+            print(f"  Run {run} saved ({len(run_results)} results)")
+
+    # --- Aggregate all model CSVs ---
+    all_csvs = list(raw_dir.glob("*.csv"))
+    df = pd.concat([pd.read_csv(f) for f in all_csvs], ignore_index=True)
 
     # --- Per-image stats (across runs) ---
     image_avg = df.groupby(["model", "category", "image_id"])[METRICS].agg(["mean", "min", "max"])
@@ -189,7 +213,7 @@ def run_pilot(
     print(cat_summary.to_string(index=False))
 
     print(f"\nSaved:")
-    print(f"  {raw_path}")
+    print(f"  {raw_dir}/ (per-model raw CSVs)")
     print(f"  {image_avg_path}")
     print(f"  {model_path}")
     print(f"  {cat_path}")
@@ -210,7 +234,6 @@ if __name__ == "__main__":
                         help=f"Options: {list(MODELS.keys())}")
     parser.add_argument("--concurrency", type=int, default=10,
                         help="Max parallel API requests")
-    parser.add_argument("--output-dir", default="results")
     args = parser.parse_args()
 
     run_pilot(
@@ -219,5 +242,4 @@ if __name__ == "__main__":
         n_runs=args.n_runs,
         concurrency=args.concurrency,
         models=args.models,
-        output_dir=args.output_dir,
     )
