@@ -8,6 +8,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from openrouter import OpenRouter
+from openrouter.components.providerpreferences import ProviderPreferences
 from openrouter.utils.retries import BackoffStrategy, RetryConfig
 
 load_dotenv()
@@ -35,10 +36,18 @@ MODELS = {
     "gemini-3.1-pro": "google/gemini-3.1-pro-preview-20260219",
     "gemini-3.1-flash-lite": "google/gemini-3.1-flash-lite-preview-20260303",
     # Anthropic
-    "claude-opus-4.7": "anthropic/claude-opus-4.7",
+    "claude-opus-4.6": "anthropic/claude-4.6-opus-20260205",
     "claude-sonnet-4.6": "anthropic/claude-4.6-sonnet-20260217",
     # Qwen
     "qwen-3.5-plus": "qwen/qwen3.5-plus-20260216",
+}
+
+# Provider routing preferences per model prefix
+PROVIDER_PREFS = {
+    "google/": ProviderPreferences(
+        order=["Google AI Studio"],
+        allow_fallbacks=False,
+    ),
 }
 
 
@@ -103,6 +112,14 @@ def _build_messages(image_uri: str) -> list[dict]:
     ]
 
 
+def _get_provider_prefs(model_id: str) -> ProviderPreferences | None:
+    """Return provider routing preferences for a given model ID."""
+    for prefix, prefs in PROVIDER_PREFS.items():
+        if model_id.startswith(prefix):
+            return prefs
+    return None
+
+
 def predict_saliency(
     image_path: str | Path,
     model: str = "gpt-5.4-mini",
@@ -113,12 +130,14 @@ def predict_saliency(
     model_id = MODELS.get(model, model)
     image_uri = _encode_image(image_path)
 
+    provider = _get_provider_prefs(model_id)
     with _get_client(api_key) as client:
         response = client.chat.send(
             model=model_id,
             messages=_build_messages(image_uri),
             temperature=0.1,
             max_tokens=4096,
+            provider=provider,
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
@@ -134,12 +153,14 @@ async def predict_saliency_async(
     model_id = MODELS.get(model, model)
     image_uri = _encode_image(image_path)
 
+    provider = _get_provider_prefs(model_id)
     async with _get_client(api_key) as client:
         response = await client.chat.send_async(
             model=model_id,
             messages=_build_messages(image_uri),
             temperature=0.1,
             max_tokens=4096,
+            provider=provider,
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
