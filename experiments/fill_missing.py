@@ -91,7 +91,7 @@ async def fill_missing(model: str, n_runs: int = 10, concurrency: int = 10, data
                     **metrics,
                 })
             except Exception as e:
-                print(f"    ERROR: {e}")
+                print(f"    ERROR [{type(e).__name__}]: {e}")
                 errors += 1
 
     tasks = [process_one(img_id, run, i) for i, (img_id, run) in enumerate(missing)]

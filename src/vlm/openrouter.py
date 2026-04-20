@@ -8,7 +8,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from openrouter import OpenRouter
-from openrouter.components.formatjsonobjectconfig import FormatJSONObjectConfig
+from openrouter.components.chatformatjsonschemaconfig import (
+    ChatFormatJSONSchemaConfig,
+    ChatJSONSchemaConfig,
+)
 from openrouter.components.providerpreferences import ProviderPreferences
 from openrouter.utils.retries import BackoffStrategy, RetryConfig
 
@@ -52,6 +55,35 @@ PROVIDER_PREFS = {
 }
 
 
+RESPONSE_FORMAT = ChatFormatJSONSchemaConfig(
+    type="json_schema",
+    json_schema=ChatJSONSchemaConfig(
+        name="gaze_points",
+        strict=True,
+        schema_={
+            "type": "object",
+            "properties": {
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "x": {"type": "number"},
+                            "y": {"type": "number"},
+                            "intensity": {"type": "number"},
+                        },
+                        "required": ["x", "y", "intensity"],
+                        "additionalProperties": False,
+                    },
+                },
+            },
+            "required": ["points"],
+            "additionalProperties": False,
+        },
+    ),
+)
+
+
 @dataclass
 class GazePoint:
     x: float  # 0-1, left to right
@@ -59,18 +91,23 @@ class GazePoint:
     intensity: float  # 0-1, attention strength
 
 
+def _detect_media_type(data: bytes) -> str:
+    """Detect image media type from file magic bytes."""
+    if data[:8] == b'\x89PNG\r\n\x1a\n':
+        return "image/png"
+    if data[:2] == b'\xff\xd8':
+        return "image/jpeg"
+    if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+        return "image/webp"
+    if data[:2] == b'BM':
+        return "image/bmp"
+    return "image/png"
+
+
 def _encode_image(image_path: Path) -> str:
-    """Encode image to base64 data URI."""
-    suffix = image_path.suffix.lower()
-    media_types = {
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".bmp": "image/bmp",
-        ".webp": "image/webp",
-    }
-    media_type = media_types.get(suffix, "image/png")
+    """Encode image to base64 data URI with actual format detection."""
     data = image_path.read_bytes()
+    media_type = _detect_media_type(data)
     b64 = base64.b64encode(data).decode("utf-8")
     return f"data:{media_type};base64,{b64}"
 
@@ -132,7 +169,6 @@ def predict_saliency(
     image_uri = _encode_image(image_path)
 
     provider = _get_provider_prefs(model_id)
-    json_format = FormatJSONObjectConfig(type="json_object")
 
     with _get_client(api_key) as client:
         response = client.chat.send(
@@ -141,7 +177,7 @@ def predict_saliency(
             temperature=0.1,
             max_tokens=4096,
             provider=provider,
-            response_format=json_format,
+            response_format=RESPONSE_FORMAT,
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
@@ -158,7 +194,6 @@ async def predict_saliency_async(
     image_uri = _encode_image(image_path)
 
     provider = _get_provider_prefs(model_id)
-    json_format = FormatJSONObjectConfig(type="json_object")
 
     async with _get_client(api_key) as client:
         response = await client.chat.send_async(
@@ -167,7 +202,7 @@ async def predict_saliency_async(
             temperature=0.1,
             max_tokens=4096,
             provider=provider,
-            response_format=json_format,
+            response_format=RESPONSE_FORMAT,
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
@@ -200,7 +235,7 @@ async def predict_batch_async(
                 points = await predict_saliency_async(path, model=model, api_key=api_key)
                 results[path.stem] = points
             except Exception as e:
-                print(f"    ERROR: {e}")
+                print(f"    ERROR [{type(e).__name__}]: {e}")
                 results[path.stem] = []
 
     tasks = [_predict_one(p, i) for i, p in enumerate(image_paths)]
