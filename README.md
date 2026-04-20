@@ -6,6 +6,7 @@ Benchmarking VLM saliency prediction on user interfaces against real human eye-t
 
 ```bash
 uv sync
+cp .env.example .env  # add your OpenRouter API key
 ```
 
 ## Dataset
@@ -22,18 +23,51 @@ Or manually download and extract into `data/`:
 data/
 ├── images/
 ├── saliency_maps/
-│   ├── heatmaps/{1s,3s,7s}/
-│   └── fixmaps/{1s,3s,7s}/
+│   ├── heatmaps_{1s,3s,7s}/
+│   └── fixmaps_{1s,3s,7s}/
 ├── eyetracker_logs/
-└── info.csv
+└── image_types.csv
 ```
 
 ## Run
 
-```bash
-# Set API key
-export OPENROUTER_API_KEY=sk-or-...
+### 1. Collect predictions
 
-# Pilot experiment
+```bash
+# All models (default 10 runs each)
 uv run python experiments/run_pilot.py
+
+# Specific models
+uv run python experiments/run_pilot.py --models gpt-5.4-mini qwen-3.5-plus
+
+# Custom runs / concurrency
+uv run python experiments/run_pilot.py --models gpt-5.4-mini --n-runs 3 --concurrency 5
 ```
+
+Available models: `gpt-5.4`, `gpt-5.4-mini`, `claude-opus-4.6`, `claude-sonnet-4.6`, `qwen-3.5-plus`, `gemini-3.1-pro`, `gemini-3.1-flash-lite`
+
+### 2. Generate metrics and images
+
+```bash
+# All durations (1s, 3s, 7s)
+uv run python experiments/regenerate.py
+
+# Specific duration
+uv run python experiments/regenerate.py --durations 3s
+```
+
+### 3. Fill missing predictions (if any failed)
+
+```bash
+uv run python experiments/fill_missing.py --model gpt-5.4-mini
+```
+
+### Quick test (single image)
+
+```bash
+uv run python experiments/run_single.py --model gpt-5.4-mini
+```
+
+## Results
+
+- [Pilot Results](PILOT_RESULTS.md) — 40 images x 7 models x 10 runs x 3 durations
