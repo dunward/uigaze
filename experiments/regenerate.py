@@ -1,4 +1,4 @@
-"""Regenerate summary CSVs and best/worst images from existing raw data."""
+"""Regenerate metrics, summaries, and images from saved prediction JSONs."""
 
 import json
 import sys
@@ -17,6 +17,7 @@ from src.analysis.visualizer import plot_saliency_comparison
 from src.data_loader import load_dataset, sample_pilot
 
 METRICS = ["CC", "SIM", "KL"]
+DURATIONS = ["1s", "3s", "7s"]
 
 
 def load_ground_truth(heatmap_path: Path) -> np.ndarray:
@@ -27,46 +28,68 @@ def load_ground_truth(heatmap_path: Path) -> np.ndarray:
     return arr
 
 
-def regenerate(target: str = "pilot", data_dir: str = "data"):
+def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, data_dir: str):
+    """Recompute metrics from prediction JSONs for a given duration."""
+    pred_base = results_dir / "predictions"
+    if not pred_base.exists():
+        return pd.DataFrame()
+
+    all_results = []
+
+    for model_dir in sorted(pred_base.iterdir()):
+        if not model_dir.is_dir():
+            continue
+        model_name = model_dir.name
+
+        for pred_file in sorted(model_dir.glob("*_run*.json")):
+            # Parse filename: {image_id}_run{N}.json
+            stem = pred_file.stem
+            parts = stem.rsplit("_run", 1)
+            if len(parts) != 2:
+                continue
+            image_id = parts[0]
+            run = int(parts[1])
+
+            sample = samples_by_id.get(image_id)
+            if not sample:
+                continue
+
+            # Load prediction
+            points_data = json.loads(pred_file.read_text())
+            points = [GazePoint(**p) for p in points_data]
+            if not points:
+                continue
+
+            # Load ground truth for this duration
+            heatmap_dir = Path(data_dir) / "saliency_maps" / f"heatmaps_{duration}"
+            heatmap_path = heatmap_dir / sample.image_path.name
+            if not heatmap_path.exists():
+                continue
+
+            gt = load_ground_truth(heatmap_path)
+            h, w = gt.shape
+            pred = generate_saliency_map(points, width=w, height=h)
+            metrics = evaluate_all(pred, gt)
+
+            all_results.append({
+                "model": model_name,
+                "run": run,
+                "image_id": image_id,
+                "category": sample.category,
+                "n_points": len(points),
+                **metrics,
+            })
+
+    return pd.DataFrame(all_results)
+
+
+def regenerate(target: str = "pilot", data_dir: str = "data", durations: list[str] | None = None):
     results_dir = Path(__file__).parent.parent / "results" / target
-    raw_dir = results_dir / "raw"
 
-    if not raw_dir.exists():
-        print(f"No raw data found at {raw_dir}")
-        sys.exit(1)
+    if durations is None:
+        durations = DURATIONS
 
-    # Load all raw CSVs
-    all_csvs = list(raw_dir.glob("*.csv"))
-    if not all_csvs:
-        print(f"No CSV files in {raw_dir}")
-        sys.exit(1)
-
-    df = pd.concat([pd.read_csv(f) for f in all_csvs], ignore_index=True)
-    print(f"Loaded {len(df)} results from {len(all_csvs)} model(s)")
-
-    # Per-image stats
-    image_avg = df.groupby(["model", "category", "image_id"])[METRICS].agg(["mean", "min", "max"])
-    image_avg.columns = [f"{m}_{s}" for m, s in image_avg.columns]
-    image_avg = image_avg.reset_index()
-    image_avg.to_csv(results_dir / "per_image_avg.csv", index=False)
-
-    # Summary by model
-    mean_cols = [f"{m}_mean" for m in METRICS]
-    model_summary = image_avg.groupby("model")[mean_cols].agg(["mean", "std"])
-    model_summary.columns = [f"{m}_{s}" for m, s in model_summary.columns]
-    model_summary = model_summary.reset_index()
-    model_summary.to_csv(results_dir / "summary_by_model.csv", index=False)
-
-    # Summary by model x category
-    cat_summary = image_avg.groupby(["model", "category"])[mean_cols].agg(["mean", "std"])
-    cat_summary.columns = [f"{m}_{s}" for m, s in cat_summary.columns]
-    cat_summary = cat_summary.reset_index()
-    cat_summary.to_csv(results_dir / "summary_by_category.csv", index=False)
-
-    print("\nSummary CSVs regenerated.")
-
-    # Best/worst images
-    print("\nGenerating best/worst images...")
+    # Load samples
     dataset = load_dataset(data_dir, duration="3s")
     if target == "pilot":
         samples = sample_pilot(dataset, n_per_category=10)
@@ -74,52 +97,99 @@ def regenerate(target: str = "pilot", data_dir: str = "data"):
         samples = dataset
     samples_by_id = {s.image_id: s for s in samples}
 
-    img_dir = results_dir / "images"
-    img_dir.mkdir(parents=True, exist_ok=True)
+    for duration in durations:
+        print(f"\n{'='*60}")
+        print(f"Duration: {duration}")
+        print(f"{'='*60}")
 
-    for (model, category), group in image_avg.groupby(["model", "category"]):
-        for label, idx in [("best", group["CC_mean"].idxmax()), ("worst", group["CC_mean"].idxmin())]:
-            row = group.loc[idx]
-            image_id = row["image_id"]
-            sample = samples_by_id.get(image_id)
-            if not sample:
-                continue
+        # Recompute metrics from JSONs
+        df = recompute_metrics(results_dir, samples_by_id, duration, data_dir)
+        if df.empty:
+            print("  No results found.")
+            continue
 
-            pred_path = results_dir / "predictions" / model / f"{image_id}_run01.json"
-            if not pred_path.exists():
-                print(f"  SKIP {model}/{image_id} (no prediction JSON)")
-                continue
+        print(f"  Computed {len(df)} results")
 
-            points = [GazePoint(**p) for p in json.loads(pred_path.read_text())]
-            gt = load_ground_truth(sample.heatmap_path)
-            h, w = gt.shape
-            pred = generate_saliency_map(points, width=w, height=h)
+        # Output dir for this duration
+        dur_dir = results_dir / duration
+        dur_dir.mkdir(parents=True, exist_ok=True)
 
-            cc = row["CC_mean"]
-            out_path = img_dir / f"{model}_{category}_{label}_cc{cc:.3f}.png"
-            plot_saliency_comparison(
-                sample.image_path, pred, gt, out_path, model_name=model
-            )
-            print(f"  {label} ({category}): CC={cc:.3f} → {out_path.name}")
+        # Raw results
+        raw_dir = dur_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        for model_name, model_df in df.groupby("model"):
+            model_df.to_csv(raw_dir / f"{model_name}.csv", index=False)
 
-    # Print summary
-    print(f"\n{'='*60}")
-    print("SUMMARY BY MODEL")
-    print(f"{'='*60}")
-    print(model_summary.to_string(index=False))
+        # Per-image stats
+        image_avg = df.groupby(["model", "category", "image_id"])[METRICS].agg(["mean", "min", "max"])
+        image_avg.columns = [f"{m}_{s}" for m, s in image_avg.columns]
+        image_avg = image_avg.reset_index()
+        image_avg.to_csv(dur_dir / "per_image_avg.csv", index=False)
 
-    print(f"\n{'='*60}")
-    print("SUMMARY BY MODEL x CATEGORY")
-    print(f"{'='*60}")
-    print(cat_summary.to_string(index=False))
+        # Summary by model
+        mean_cols = [f"{m}_mean" for m in METRICS]
+        model_summary = image_avg.groupby("model")[mean_cols].agg(["mean", "std"])
+        model_summary.columns = [f"{m}_{s}" for m, s in model_summary.columns]
+        model_summary = model_summary.reset_index()
+        model_summary.to_csv(dur_dir / "summary_by_model.csv", index=False)
+
+        # Summary by model x category
+        cat_summary = image_avg.groupby(["model", "category"])[mean_cols].agg(["mean", "std"])
+        cat_summary.columns = [f"{m}_{s}" for m, s in cat_summary.columns]
+        cat_summary = cat_summary.reset_index()
+        cat_summary.to_csv(dur_dir / "summary_by_category.csv", index=False)
+
+        # Best/worst images
+        img_dir = dur_dir / "images"
+        img_dir.mkdir(parents=True, exist_ok=True)
+
+        for (model, category), group in image_avg.groupby(["model", "category"]):
+            for label, idx in [("best", group["CC_mean"].idxmax()), ("worst", group["CC_mean"].idxmin())]:
+                row = group.loc[idx]
+                image_id = row["image_id"]
+                sample = samples_by_id.get(image_id)
+                if not sample:
+                    continue
+
+                pred_path = results_dir / "predictions" / model / f"{image_id}_run01.json"
+                if not pred_path.exists():
+                    continue
+
+                points = [GazePoint(**p) for p in json.loads(pred_path.read_text())]
+
+                heatmap_path = Path(data_dir) / "saliency_maps" / f"heatmaps_{duration}" / sample.image_path.name
+                if not heatmap_path.exists():
+                    continue
+
+                gt = load_ground_truth(heatmap_path)
+                h, w = gt.shape
+                pred = generate_saliency_map(points, width=w, height=h)
+
+                model_img_dir = img_dir / model
+                model_img_dir.mkdir(parents=True, exist_ok=True)
+
+                cc = row["CC_mean"]
+                out_path = model_img_dir / f"{category}_{label}_cc{cc:.3f}.png"
+                plot_saliency_comparison(
+                    sample.image_path, pred, gt, out_path, model_name=model
+                )
+
+        # Print
+        print(f"\n  SUMMARY BY MODEL ({duration})")
+        print(model_summary.to_string(index=False))
+
+    print(f"\nDone. Results saved to {results_dir}/{{1s,3s,7s}}/")
 
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Regenerate summaries and images from raw data")
+    parser = argparse.ArgumentParser(description="Regenerate metrics and images from prediction JSONs")
     parser.add_argument("--target", default="pilot", choices=["pilot", "full"])
     parser.add_argument("--data-dir", default="data")
+    parser.add_argument("--durations", nargs="+", default=None,
+                        choices=["1s", "3s", "7s"],
+                        help="Durations to compute. Default: all")
     args = parser.parse_args()
 
-    regenerate(target=args.target, data_dir=args.data_dir)
+    regenerate(target=args.target, data_dir=args.data_dir, durations=args.durations)
