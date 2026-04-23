@@ -28,11 +28,13 @@ def load_ground_truth(heatmap_path: Path) -> np.ndarray:
     return arr
 
 
-def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, data_dir: str):
+def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, data_dir: str, models: list[str] | None = None):
     """Recompute metrics from prediction JSONs for a given duration."""
     pred_base = results_dir / "predictions"
     if not pred_base.exists():
         return pd.DataFrame()
+
+    dur_dir = results_dir / duration / "raw"
 
     all_results = []
 
@@ -40,6 +42,24 @@ def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, dat
         if not model_dir.is_dir():
             continue
         model_name = model_dir.name
+
+        # Skip models not requested
+        if models and model_name not in models:
+            # Load existing CSV if available
+            existing_csv = dur_dir / f"{model_name}.csv"
+            if existing_csv.exists():
+                existing = pd.read_csv(existing_csv)
+                all_results.extend(existing.to_dict("records"))
+            continue
+
+        # Skip if already computed and not explicitly requested
+        if models is None:
+            existing_csv = dur_dir / f"{model_name}.csv"
+            if existing_csv.exists():
+                existing = pd.read_csv(existing_csv)
+                all_results.extend(existing.to_dict("records"))
+                print(f"  {model_name}: loaded from cache")
+                continue
 
         for pred_file in sorted(model_dir.glob("*_run*.json")):
             # Parse filename: {image_id}_run{N}.json
@@ -83,7 +103,7 @@ def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, dat
     return pd.DataFrame(all_results)
 
 
-def regenerate(target: str = "pilot", data_dir: str = "data", durations: list[str] | None = None):
+def regenerate(target: str = "pilot", data_dir: str = "data", durations: list[str] | None = None, models: list[str] | None = None):
     results_dir = Path(__file__).parent.parent / "results" / target
 
     if durations is None:
@@ -103,7 +123,7 @@ def regenerate(target: str = "pilot", data_dir: str = "data", durations: list[st
         print(f"{'='*60}")
 
         # Recompute metrics from JSONs
-        df = recompute_metrics(results_dir, samples_by_id, duration, data_dir)
+        df = recompute_metrics(results_dir, samples_by_id, duration, data_dir, models=models)
         if df.empty:
             print("  No results found.")
             continue
@@ -190,6 +210,8 @@ if __name__ == "__main__":
     parser.add_argument("--durations", nargs="+", default=None,
                         choices=["1s", "3s", "7s"],
                         help="Durations to compute. Default: all")
+    parser.add_argument("--models", nargs="+", default=None,
+                        help="Models to regenerate. Others loaded from cache. Default: all")
     args = parser.parse_args()
 
-    regenerate(target=args.target, data_dir=args.data_dir, durations=args.durations)
+    regenerate(target=args.target, data_dir=args.data_dir, durations=args.durations, models=args.models)
