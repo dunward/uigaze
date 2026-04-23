@@ -261,7 +261,11 @@ def _parse_gaze_points(content: str) -> list[GazePoint]:
     """Parse VLM response text into GazePoint list."""
     text = content.strip()
 
-    parsed = json.loads(text)
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as e:
+        print(f"    RAW RESPONSE: {text}")
+        raise
 
     # Handle both raw array and wrapped object (e.g. {"gaze_points": [...]})
     if isinstance(parsed, list):
