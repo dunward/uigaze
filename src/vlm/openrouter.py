@@ -44,6 +44,7 @@ MODELS = {
     "claude-sonnet-4.6": "anthropic/claude-4.6-sonnet-20260217",
     # Qwen
     "qwen-3.5-plus": "qwen/qwen3.5-plus-20260216",
+    "qwen-3.5-flash": "qwen/qwen3.5-flash-20260224",
     # ByteDance
     "ui-tars-1.5": "bytedance/ui-tars-1.5-7b",
 }
