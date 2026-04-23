@@ -13,6 +13,7 @@ from openrouter.components.chatformatjsonschemaconfig import (
     ChatJSONSchemaConfig,
 )
 from openrouter.components.providerpreferences import ProviderPreferences
+from openrouter.components.responsehealingplugin import ResponseHealingPlugin
 from openrouter.utils.retries import BackoffStrategy, RetryConfig
 
 load_dotenv()
@@ -178,9 +179,10 @@ def predict_saliency(
             model=model_id,
             messages=_build_messages(image_uri),
             temperature=0.1,
-            max_tokens=4096,
+            max_tokens=8192,
             provider=provider,
             response_format=RESPONSE_FORMAT,
+            plugins=[ResponseHealingPlugin(id="response-healing")],
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
@@ -203,9 +205,10 @@ async def predict_saliency_async(
             model=model_id,
             messages=_build_messages(image_uri),
             temperature=0.1,
-            max_tokens=4096,
+            max_tokens=8192,
             provider=provider,
             response_format=RESPONSE_FORMAT,
+            plugins=[ResponseHealingPlugin(id="response-healing")],
         )
 
     return _parse_gaze_points(response.choices[0].message.content)
