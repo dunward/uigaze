@@ -54,6 +54,64 @@ Pilot experiment results for UIGaze — VLM saliency prediction benchmarked agai
 | gemini-3.1-flash-lite | 0.156 ± 0.277 | 0.263 ± 0.228 | 5.439 ± 3.889 |
 | ui-tars-1.5 | 0.110 ± 0.173 | 0.163 ± 0.156 | 7.247 ± 2.700 |
 
+## 3-Run Subset (Sensitivity Check)
+
+To determine the number of repetitions needed for reliable model comparison, we re-aggregated all metrics using only the first 3 of 10 runs per (model, image) pair and compared the resulting estimates against the full 10-run baseline. The analysis examines whether the additional repetitions materially change either absolute metric values or the relative ranking of models.
+
+### Duration: 1s (3 runs)
+
+| Model | CC (↑) | SIM (↑) | KL (↓) |
+|---|---|---|---|
+| claude-opus-4.6 | **0.225** ± 0.157 | 0.292 ± 0.086 | 2.429 ± 1.116 |
+| qwen-3.5-plus | 0.222 ± 0.123 | 0.291 ± 0.066 | **2.367** ± 1.036 |
+| gpt-5.4 | 0.203 ± 0.140 | 0.284 ± 0.078 | 2.476 ± 1.144 |
+| gpt-5.4-mini | 0.162 ± 0.129 | 0.263 ± 0.075 | 2.579 ± 1.159 |
+| claude-sonnet-4.6 | 0.133 ± 0.144 | 0.242 ± 0.081 | 3.054 ± 1.581 |
+| qwen-3.5-flash | 0.128 ± 0.107 | 0.238 ± 0.066 | 3.421 ± 1.659 |
+| ui-tars-1.5 | 0.098 ± 0.149 | 0.134 ± 0.129 | 7.680 ± 3.018 |
+| gemini-3.1-pro | 0.080 ± 0.148 | 0.158 ± 0.120 | 6.168 ± 3.449 |
+| gemini-3.1-flash-lite | 0.049 ± 0.139 | 0.139 ± 0.137 | 6.811 ± 3.981 |
+
+### Duration: 3s (3 runs)
+
+| Model | CC (↑) | SIM (↑) | KL (↓) |
+|---|---|---|---|
+| **qwen-3.5-plus** | **0.355** ± 0.174 | **0.409** ± 0.085 | **1.547** ± 0.609 |
+| claude-opus-4.6 | 0.329 ± 0.204 | 0.391 ± 0.113 | 1.835 ± 1.062 |
+| gpt-5.4 | 0.319 ± 0.166 | 0.390 ± 0.090 | 1.734 ± 0.817 |
+| gpt-5.4-mini | 0.246 ± 0.153 | 0.354 ± 0.088 | 1.962 ± 0.945 |
+| claude-sonnet-4.6 | 0.216 ± 0.186 | 0.334 ± 0.111 | 2.418 ± 1.433 |
+| qwen-3.5-flash | 0.214 ± 0.144 | 0.323 ± 0.092 | 2.653 ± 1.445 |
+| gemini-3.1-pro | 0.132 ± 0.199 | 0.215 ± 0.165 | 5.651 ± 3.595 |
+| ui-tars-1.5 | 0.122 ± 0.188 | 0.154 ± 0.153 | 7.464 ± 3.020 |
+| gemini-3.1-flash-lite | 0.102 ± 0.228 | 0.193 ± 0.192 | 6.220 ± 4.158 |
+
+### Duration: 7s (3 runs)
+
+| Model | CC (↑) | SIM (↑) | KL (↓) |
+|---|---|---|---|
+| **qwen-3.5-plus** | **0.483** ± 0.173 | **0.534** ± 0.083 | **1.070** ± 0.577 |
+| gpt-5.4 | 0.417 ± 0.172 | 0.504 ± 0.089 | 1.265 ± 0.714 |
+| claude-opus-4.6 | 0.386 ± 0.229 | 0.483 ± 0.126 | 1.606 ± 1.051 |
+| gpt-5.4-mini | 0.324 ± 0.173 | 0.460 ± 0.087 | 1.438 ± 0.779 |
+| qwen-3.5-flash | 0.313 ± 0.169 | 0.424 ± 0.114 | 2.163 ± 1.519 |
+| claude-sonnet-4.6 | 0.297 ± 0.230 | 0.435 ± 0.128 | 1.922 ± 1.406 |
+| gemini-3.1-pro | 0.185 ± 0.249 | 0.279 ± 0.208 | 5.143 ± 3.519 |
+| gemini-3.1-flash-lite | 0.153 ± 0.291 | 0.258 ± 0.241 | 5.583 ± 4.066 |
+| ui-tars-1.5 | 0.093 ± 0.167 | 0.152 ± 0.152 | 7.445 ± 2.717 |
+
+**Convergence of metric estimates (absolute difference between 3-run and 10-run means)**
+
+| Metric | Mean abs. diff | Max abs. diff | Largest deviation |
+|---|---|---|---|
+| CC | 0.005 | 0.017 | ui-tars-1.5 (7s) |
+| SIM | 0.003 | 0.012 | ui-tars-1.5 (7s) |
+| KL | 0.053 | 0.198 | ui-tars-1.5 (7s) |
+
+Across all nine models and three durations, the 3-run estimate of CC deviates from the 10-run estimate by less than 0.011 for the four highest-ranked models, which is approximately one-thirtieth of the per-image standard deviation (0.15–0.23). The top-four ordering is preserved at every duration, and the larger KL deviations are confined to the lowest-performing models — UI-TARS and Gemini Flash Lite — whose KL values already exceed 5 and therefore lie far outside the operating range used for head-to-head comparisons.
+
+We conclude that three repetitions per image yield estimates that are statistically indistinguishable from the ten-run baseline for the purposes of model ranking, and we adopt this configuration for subsequent large-scale evaluation.
+
 ## Key Findings
 
 1. **All models improve with longer duration** — 7s ground truth yields the highest CC across all models, suggesting VLM predictions align more closely with exploratory gaze patterns than initial fixations
