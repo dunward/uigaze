@@ -16,7 +16,7 @@ OUTPUT_DIR = Path(__file__).parent.parent / "results" / "full"
 def run_full(
     data_dir: str = "data",
     n_runs: int = 3,
-    concurrency: int = 10,
+    concurrency: int = 200,
     models: list[str] | None = None,
     categories: list[str] | None = None,
 ):
