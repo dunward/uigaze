@@ -33,33 +33,41 @@ data/
 
 ### 1. Collect predictions
 
+Pilot (40 images × 10 runs, sanity check):
+
 ```bash
-# All models (default 10 runs each)
 uv run python experiments/run_pilot.py
-
-# Specific models
 uv run python experiments/run_pilot.py --models gpt-5.4-mini qwen-3.5-plus
-
-# Custom runs / concurrency
-uv run python experiments/run_pilot.py --models gpt-5.4-mini --n-runs 3 --concurrency 5
 ```
 
-Available models: `gpt-5.4`, `gpt-5.4-mini`, `claude-opus-4.6`, `claude-sonnet-4.6`, `qwen-3.5-plus`, `gemini-3.1-pro`, `gemini-3.1-flash-lite`
+Full (1,980 images × 3 runs):
+
+```bash
+uv run python experiments/run_full.py
+uv run python experiments/run_full.py --models gpt-5.4 --concurrency 200
+uv run python experiments/run_full.py --categories desktop poster
+```
+
+Available models: `gpt-5.4`, `gpt-5.4-mini`, `claude-opus-4.6`, `claude-sonnet-4.6`, `qwen-3.5-plus`, `qwen-3.5-flash`, `gemini-3.1-pro`, `gemini-3.1-flash-lite`, `ui-tars-1.5`
 
 ### 2. Generate metrics and images
 
 ```bash
-# All durations (1s, 3s, 7s)
-uv run python experiments/regenerate.py
+# Pilot
+uv run python experiments/regenerate.py --target pilot
+
+# Full
+uv run python experiments/regenerate.py --target full
 
 # Specific duration
-uv run python experiments/regenerate.py --durations 3s
+uv run python experiments/regenerate.py --target full --durations 3s
 ```
 
 ### 3. Fill missing predictions (if any failed)
 
 ```bash
-uv run python experiments/fill_missing.py --model gpt-5.4-mini
+uv run python experiments/fill_missing.py --target pilot --model gpt-5.4-mini
+uv run python experiments/fill_missing.py --target full --model gpt-5.4 --concurrency 200
 ```
 
 ### Quick test (single image)
