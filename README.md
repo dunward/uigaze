@@ -70,4 +70,5 @@ uv run python experiments/run_single.py --model gpt-5.4-mini
 
 ## Results
 
-- [Pilot Results](PILOT_RESULTS.md) — 40 images x 7 models x 10 runs x 3 durations
+- [Full Results](FULL_RESULTS.md) — 1,980 images × 9 models × 3 runs × 3 durations
+- [Pilot Results](PILOT_RESULTS.md) — 40 images × 9 models × 10 runs × 3 durations
