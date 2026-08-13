@@ -1,0 +1,1 @@
+{"points": [{"x": 0.06, "y": 7.0, "intensity": 0.5}, {"x": 0.21, "y": 7.0, "intensity": 0.5}, {"x": 0.5, "y": 21.0, "intensity": 0.5}, {"x": 0.5, "y": 43.0, "intensity": 0.5}, {"x": 0.45, "y": 26.0, "intensity": 0.5}, {"x": 0.45, "y": 29.0, "intensity": 0.5}, {"x": 0.45, "y": 32.0, "intensity": 0.5}, {"x": 0.45, "y": 49.0, "intensity": 0.5}]}

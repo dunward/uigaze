@@ -1,0 +1,159 @@
+/Users/cave/uigaze/src/analysis/stats.py:84: SmallSampleWarning: One or more sample arguments is too small; all returned values will be NaN. See documentation for sample size requirements.
+  stat, p = sstats.friedmanchisquare(*arrays)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/scipy/_lib/_util.py:951: SmallSampleWarning: One or more sample arguments is too small; all returned values will be NaN. See documentation for sample size requirements.
+  return fun(*args, **kwargs)
+/Users/cave/uigaze/src/analysis/stats.py:37: RuntimeWarning: Mean of empty slice
+  boot = rng.choice(diff, size=(n_boot, n), replace=True).mean(axis=1)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/Users/cave/uigaze/src/analysis/stats.py:39: RuntimeWarning: Mean of empty slice
+  return float(diff.mean()), float(lo), float(hi)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/Users/cave/uigaze/src/analysis/stats.py:84: SmallSampleWarning: One or more sample arguments is too small; all returned values will be NaN. See documentation for sample size requirements.
+  stat, p = sstats.friedmanchisquare(*arrays)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/scipy/_lib/_util.py:951: SmallSampleWarning: One or more sample arguments is too small; all returned values will be NaN. See documentation for sample size requirements.
+  return fun(*args, **kwargs)
+/Users/cave/uigaze/src/analysis/stats.py:37: RuntimeWarning: Mean of empty slice
+  boot = rng.choice(diff, size=(n_boot, n), replace=True).mean(axis=1)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/Users/cave/uigaze/src/analysis/stats.py:39: RuntimeWarning: Mean of empty slice
+  return float(diff.mean()), float(lo), float(hi)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/Users/cave/uigaze/src/analysis/stats.py:84: SmallSampleWarning: One or more sample arguments is too small; all returned values will be NaN. See documentation for sample size requirements.
+  stat, p = sstats.friedmanchisquare(*arrays)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/scipy/_lib/_util.py:951: SmallSampleWarning: One or more sample arguments is too small; all returned values will be NaN. See documentation for sample size requirements.
+  return fun(*args, **kwargs)
+/Users/cave/uigaze/src/analysis/stats.py:37: RuntimeWarning: Mean of empty slice
+  boot = rng.choice(diff, size=(n_boot, n), replace=True).mean(axis=1)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/Users/cave/uigaze/src/analysis/stats.py:39: RuntimeWarning: Mean of empty slice
+  return float(diff.mean()), float(lo), float(hi)
+/Users/cave/uigaze/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+
+### Duration 1s - model ranking (CC, bootstrap 95% CI) ###
+                model    n  mean  ci95_lo  ci95_hi
+      claude-opus-4.6 1980 0.227    0.220    0.233
+              gpt-5.4 1980 0.217    0.210    0.223
+        qwen-3.5-plus 1978 0.161    0.155    0.167
+         gpt-5.4-mini 1980 0.154    0.148    0.160
+    claude-sonnet-4.6 1980 0.142    0.135    0.148
+       qwen-3.5-flash 1978 0.135    0.129    0.142
+          ui-tars-1.5 1980 0.078    0.071    0.085
+       gemini-3.1-pro 1980 0.059    0.053    0.065
+gemini-3.1-flash-lite 1980 0.038    0.032    0.045
+
+=== model (CC) ===
+Friedman: chi2=4047.84, p=0.00e+00, Kendall's W=0.256, n=1978 images, 9 groups
+Pairwise (Holm-corrected): 36/36 pairs significant at alpha=.05
+
+=== category (CC) ===
+Friedman: chi2=nan, p=nan, Kendall's W=nan, n=0 images, 4 groups
+Pairwise (Holm-corrected): 6/6 pairs significant at alpha=.05
+
+### Duration 3s - model ranking (CC, bootstrap 95% CI) ###
+                model    n  mean  ci95_lo  ci95_hi
+              gpt-5.4 1980 0.326    0.319    0.333
+      claude-opus-4.6 1980 0.303    0.295    0.311
+        qwen-3.5-plus 1978 0.245    0.238    0.252
+         gpt-5.4-mini 1980 0.220    0.213    0.227
+    claude-sonnet-4.6 1980 0.213    0.205    0.220
+       qwen-3.5-flash 1978 0.210    0.204    0.217
+       gemini-3.1-pro 1980 0.103    0.095    0.111
+          ui-tars-1.5 1980 0.101    0.093    0.109
+gemini-3.1-flash-lite 1980 0.070    0.062    0.079
+
+=== model (CC) ===
+Friedman: chi2=4454.71, p=0.00e+00, Kendall's W=0.282, n=1978 images, 9 groups
+Pairwise (Holm-corrected): 34/36 pairs significant at alpha=.05
+
+=== category (CC) ===
+Friedman: chi2=nan, p=nan, Kendall's W=nan, n=0 images, 4 groups
+Pairwise (Holm-corrected): 6/6 pairs significant at alpha=.05
+
+### Duration 7s - model ranking (CC, bootstrap 95% CI) ###
+                model    n  mean  ci95_lo  ci95_hi
+              gpt-5.4 1980 0.408    0.401    0.416
+      claude-opus-4.6 1980 0.344    0.335    0.352
+        qwen-3.5-plus 1978 0.337    0.330    0.344
+       qwen-3.5-flash 1978 0.295    0.287    0.302
+         gpt-5.4-mini 1980 0.289    0.281    0.296
+    claude-sonnet-4.6 1980 0.279    0.270    0.287
+       gemini-3.1-pro 1980 0.144    0.134    0.154
+gemini-3.1-flash-lite 1980 0.105    0.094    0.115
+          ui-tars-1.5 1980 0.086    0.079    0.094
+
+=== model (CC) ===
+Friedman: chi2=4805.05, p=0.00e+00, Kendall's W=0.304, n=1978 images, 9 groups
+Pairwise (Holm-corrected): 35/36 pairs significant at alpha=.05
+
+=== category (CC) ===
+Friedman: chi2=nan, p=nan, Kendall's W=nan, n=0 images, 4 groups
+Pairwise (Holm-corrected): 6/6 pairs significant at alpha=.05
+
+=== duration effect: claude-opus-4.6 (CC) ===
+Friedman: chi2=1243.28, p=1.06e-270, W=0.314
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0763  -0.0807  -0.0718     0.0         True
+     1s      7s    -0.1170  -0.1228  -0.1111     0.0         True
+     3s      7s    -0.0407  -0.0443  -0.0371     0.0         True
+
+=== duration effect: claude-sonnet-4.6 (CC) ===
+Friedman: chi2=1748.56, p=0.00e+00, W=0.442
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0709  -0.0750  -0.0667     0.0         True
+     1s      7s    -0.1370  -0.1424  -0.1316     0.0         True
+     3s      7s    -0.0661  -0.0696  -0.0628     0.0         True
+
+=== duration effect: gemini-3.1-flash-lite (CC) ===
+Friedman: chi2=24.26, p=5.40e-06, W=0.006
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0320  -0.0359  -0.0282     0.0         True
+     1s      7s    -0.0663  -0.0724  -0.0603     0.0         True
+     3s      7s    -0.0343  -0.0378  -0.0309     0.0         True
+
+=== duration effect: gemini-3.1-pro (CC) ===
+Friedman: chi2=243.75, p=1.18e-53, W=0.062
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0439  -0.0478  -0.0401     0.0         True
+     1s      7s    -0.0850  -0.0910  -0.0791     0.0         True
+     3s      7s    -0.0411  -0.0447  -0.0376     0.0         True
+
+=== duration effect: gpt-5.4 (CC) ===
+Friedman: chi2=2722.29, p=0.00e+00, W=0.687
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.1095  -0.1138  -0.1052     0.0         True
+     1s      7s    -0.1918  -0.1970  -0.1865     0.0         True
+     3s      7s    -0.0822  -0.0857  -0.0787     0.0         True
+
+=== duration effect: gpt-5.4-mini (CC) ===
+Friedman: chi2=2003.79, p=0.00e+00, W=0.506
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0663  -0.0703  -0.0622     0.0         True
+     1s      7s    -0.1348  -0.1399  -0.1295     0.0         True
+     3s      7s    -0.0684  -0.0718  -0.0651     0.0         True
+
+=== duration effect: qwen-3.5-flash (CC) ===
+Friedman: chi2=2054.91, p=0.00e+00, W=0.519
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0750  -0.0792  -0.0707     0.0         True
+     1s      7s    -0.1594  -0.1650  -0.1539     0.0         True
+     3s      7s    -0.0845  -0.0882  -0.0806     0.0         True
+
+=== duration effect: qwen-3.5-plus (CC) ===
+Friedman: chi2=2596.11, p=0.00e+00, W=0.656
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0838  -0.0879  -0.0797     0.0         True
+     1s      7s    -0.1762  -0.1813  -0.1709     0.0         True
+     3s      7s    -0.0924  -0.0958  -0.0889     0.0         True
+
+=== duration effect: ui-tars-1.5 (CC) ===
+Friedman: chi2=366.49, p=2.61e-80, W=0.093
+group_1 group_2  mean_diff  ci95_lo  ci95_hi  p_holm  sig_holm_05
+     1s      3s    -0.0232  -0.0271  -0.0192  0.0000         True
+     1s      7s    -0.0085  -0.0132  -0.0038  0.0468         True
+     3s      7s     0.0147   0.0116   0.0179  0.0000         True

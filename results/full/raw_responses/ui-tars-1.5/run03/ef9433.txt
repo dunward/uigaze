@@ -1,0 +1,30 @@
+{
+  "points": [
+    {"x": 624, "y": 54, "intensity": 0.9},
+    {"x": 624,  "y": 135, "intensity": 0.8},
+    {"x": 214, "y": 135, "intensity": 0.7},
+    {"x": 714, "y": 135, "intensity": 0.7},
+    {"x": 1096, "y": 135, "intensity": 0.6},
+    {"x": 1096, "y": 367, "intensity": 0.6},
+    {"x": 714, "y": 367, "intensity": 0.6},
+    {"x": 214, "y": 367, "intensity": 0.6},
+    {"x": 214, "y": 599, "intensity": 0.5},
+    {"x": 714, "y": 599, "intensity": 0.5},
+    {"x": 1096, "y": 599, "intensity": 0.5},
+    {"x": 214, "y": 214, "intensity": 0.4},
+    {"x": 214, "y": 343, "intensity": 0.4},
+    {"x": 214, "y": 472, "intensity": 0.4},
+    {"x": 714, "y": 214, "intensity": 0.4},
+    {"x": 714, "y": 343, "intensity": 0.4},
+    {"x": 714, "y": 472, "intensity": 0.4},
+    {"x": 1096, "y": 214, "intensity": 0.4},
+    {"x": 1096, "y": 343, "intensity": 0.4},
+    {"x": 1096, "y": 472, "intensity": 0.4},
+    {"x": 214, "y": 624, "intensity": 0.3},
+    {"x": 714, "y": 624, "intensity": 0.3},
+    {"x": 1096, "y": 624, "intensity": 0.3},
+    {"x": 214, "y": 753, "intensity": 0.2},
+    {"x": 714, "y": 753, "intensity": 0.2},
+    {"x": 1096, "y": 753, "intensity": 0.2}
+  ]
+}

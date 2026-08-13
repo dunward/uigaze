@@ -1,67 +1,72 @@
 [
   {
     "x": 0.5,
-    "y": 0.138,
-    "intensity": 0.8
+    "y": 0.14,
+    "intensity": 0.75
   },
   {
     "x": 0.5,
-    "y": 0.278,
-    "intensity": 0.7
+    "y": 0.27,
+    "intensity": 0.75
   },
   {
     "x": 0.5,
-    "y": 0.411,
-    "intensity": 0.6
+    "y": 0.41,
+    "intensity": 0.75
   },
   {
     "x": 0.5,
-    "y": 0.549,
-    "intensity": 0.6
+    "y": 0.54,
+    "intensity": 0.75
   },
   {
     "x": 0.5,
-    "y": 0.682,
-    "intensity": 0.6
+    "y": 0.67,
+    "intensity": 0.75
   },
   {
     "x": 0.5,
-    "y": 0.815,
-    "intensity": 0.6
+    "y": 0.8,
+    "intensity": 0.75
   },
   {
     "x": 0.5,
-    "y": 0.948,
-    "intensity": 0.6
-  },
-  {
-    "x": 0.5,
-    "y": 1.0,
-    "intensity": 0.6
+    "y": 0.93,
+    "intensity": 0.75
   },
   {
     "x": 0.5,
     "y": 1.0,
-    "intensity": 0.6
+    "intensity": 0.75
   },
   {
     "x": 0.5,
     "y": 1.0,
-    "intensity": 0.6
+    "intensity": 0.75
   },
   {
     "x": 0.5,
     "y": 1.0,
-    "intensity": 0.6
+    "intensity": 0.75
   },
   {
     "x": 0.5,
     "y": 1.0,
-    "intensity": 0.6
+    "intensity": 0.75
   },
   {
     "x": 0.5,
-    "y": 1.0,
-    "intensity": 0.6
+    "y": 0.158,
+    "intensity": 0.75
+  },
+  {
+    "x": 0.5,
+    "y": 0.17099999999999999,
+    "intensity": 0.75
+  },
+  {
+    "x": 0.5,
+    "y": 0.184,
+    "intensity": 0.75
   }
 ]

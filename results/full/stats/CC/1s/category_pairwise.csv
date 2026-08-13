@@ -1,0 +1,7 @@
+group_1,group_2,n,mean_diff,ci95_lo,ci95_hi,wilcoxon_stat,p_raw,rank_biserial_r,p_holm,sig_holm_05
+desktop,mobile,0,,,,,,0.0,,True
+desktop,poster,0,,,,,,0.0,,True
+desktop,web,0,,,,,,0.0,,True
+mobile,poster,0,,,,,,0.0,,True
+mobile,web,0,,,,,,0.0,,True
+poster,web,0,,,,,,0.0,,True

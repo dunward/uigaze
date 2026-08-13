@@ -2,191 +2,181 @@
   {
     "x": 0.17,
     "y": 0.06,
-    "intensity": 0.94
+    "intensity": 0.7
   },
   {
     "x": 0.17,
     "y": 0.13,
-    "intensity": 0.88
+    "intensity": 0.6
   },
   {
     "x": 0.17,
     "y": 0.19,
-    "intensity": 0.88
+    "intensity": 0.6
   },
   {
     "x": 0.23,
     "y": 0.26,
-    "intensity": 0.88
+    "intensity": 0.6
   },
   {
     "x": 0.24,
-    "y": 0.33,
-    "intensity": 0.88
+    "y": 0.32,
+    "intensity": 0.7
   },
   {
     "x": 0.24,
     "y": 0.39,
-    "intensity": 0.88
+    "intensity": 0.6
   },
   {
     "x": 0.14,
     "y": 0.44,
-    "intensity": 0.88
+    "intensity": 0.5
   },
   {
     "x": 0.24,
     "y": 0.5,
-    "intensity": 0.88
+    "intensity": 0.6
   },
   {
     "x": 0.17,
-    "y": 0.56,
-    "intensity": 0.88
+    "y": 0.55,
+    "intensity": 0.5
   },
   {
     "x": 0.05,
     "y": 0.13,
-    "intensity": 0.82
+    "intensity": 0.5
   },
   {
     "x": 0.05,
     "y": 0.19,
-    "intensity": 0.82
+    "intensity": 0.5
   },
   {
     "x": 0.05,
     "y": 0.26,
-    "intensity": 0.82
+    "intensity": 0.5
   },
   {
     "x": 0.05,
-    "y": 0.33,
-    "intensity": 0.82
+    "y": 0.32,
+    "intensity": 0.5
   },
   {
     "x": 0.05,
     "y": 0.39,
-    "intensity": 0.82
+    "intensity": 0.5
   },
   {
     "x": 0.06,
     "y": 0.5,
-    "intensity": 0.82
-  },
-  {
-    "x": 0.01,
-    "y": 0.06,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
     "x": 0.93,
     "y": 0.06,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.04,
-    "y": 0.01,
-    "intensity": 0.71
+    "x": 0.01,
+    "y": 0.06,
+    "intensity": 0.4
   },
   {
-    "x": 0.1,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.14,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.18,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.22,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.26,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.31,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.35,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.39,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.45,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.51,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.56,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.68,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.72,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.76,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.8,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.88,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.94,
-    "y": 0.01,
-    "intensity": 0.71
-  },
-  {
-    "x": 0.2,
+    "x": 0.19,
     "y": 0.96,
-    "intensity": 0.71
+    "intensity": 0.4
   },
   {
     "x": 0.5,
     "y": 0.96,
-    "intensity": 0.71
+    "intensity": 0.4
   },
   {
     "x": 0.78,
     "y": 0.96,
-    "intensity": 0.71
+    "intensity": 0.4
+  },
+  {
+    "x": 0.04,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.1,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.15,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.21,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.27,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.33,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.39,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.45,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.5,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.56,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.67,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.72,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.77,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.82,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.88,
+    "y": 0.01,
+    "intensity": 0.3
+  },
+  {
+    "x": 0.94,
+    "y": 0.01,
+    "intensity": 0.3
   }
 ]

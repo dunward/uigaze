@@ -1,107 +1,107 @@
 [
   {
     "x": 0.68,
-    "y": 1.0,
-    "intensity": 1.0
+    "y": 0.275,
+    "intensity": 0.6
   },
   {
     "x": 0.33,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.368,
+    "intensity": 0.6
   },
   {
     "x": 0.44,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.368,
+    "intensity": 0.6
   },
   {
     "x": 0.55,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.368,
+    "intensity": 0.6
   },
   {
     "x": 0.66,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.368,
+    "intensity": 0.6
   },
   {
     "x": 0.33,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.453,
+    "intensity": 0.6
   },
   {
     "x": 0.44,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.453,
+    "intensity": 0.6
   },
   {
     "x": 0.55,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.453,
+    "intensity": 0.6
   },
   {
     "x": 0.66,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.453,
+    "intensity": 0.6
   },
   {
     "x": 0.33,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.537,
+    "intensity": 0.6
   },
   {
     "x": 0.44,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.537,
+    "intensity": 0.6
   },
   {
     "x": 0.55,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.537,
+    "intensity": 0.6
   },
   {
     "x": 0.66,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.537,
+    "intensity": 0.6
   },
   {
     "x": 0.33,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.622,
+    "intensity": 0.6
   },
   {
     "x": 0.44,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.622,
+    "intensity": 0.6
   },
   {
     "x": 0.55,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.622,
+    "intensity": 0.6
   },
   {
     "x": 0.66,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.622,
+    "intensity": 0.6
   },
   {
     "x": 0.33,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.706,
+    "intensity": 0.6
   },
   {
     "x": 0.44,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.706,
+    "intensity": 0.6
   },
   {
     "x": 0.55,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.706,
+    "intensity": 0.6
   },
   {
     "x": 0.66,
-    "y": 1.0,
-    "intensity": 0.8
+    "y": 0.706,
+    "intensity": 0.6
   }
 ]

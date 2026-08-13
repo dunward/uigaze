@@ -1,0 +1,15 @@
+{
+    "points": [
+        {"x": 313, "y": 34, "intensity": 0.9},
+        {"x": 313, "y": 114, "intensity": 0.8},
+        {"x": 313, "y": 192, "intensity": 0.7},
+        {"x": 313, "y": 273, "intensity": 0.6},
+        {"x": 313, "y": 353, "intensity": 0.5},
+        {"x": 313, "y": 433, "intensity": 0.4},
+        {"x": 313, "y": 513, "intensity": 0.3},
+        {"x": 313, "y": 593, "intensity": 0.2},
+        {"x": 313, "y": 673, "intensity": 0.1},
+        {"x": 313, "y": 753, "intensity": 0.05},
+        {"x": 313, "y": 833, "intensity": 0.02}
+    ]
+}

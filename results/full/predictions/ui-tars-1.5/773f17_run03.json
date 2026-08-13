@@ -1,6 +1,6 @@
 [
   {
-    "x": 0.04,
+    "x": 0.06,
     "y": 0.02,
     "intensity": 0.9
   },
@@ -52,27 +52,27 @@
   {
     "x": 0.72,
     "y": 0.02,
-    "intensity": 0.04
+    "intensity": 0.03
   },
   {
     "x": 0.78,
     "y": 0.02,
-    "intensity": 0.03
+    "intensity": 0.02
   },
   {
     "x": 0.84,
     "y": 0.02,
-    "intensity": 0.02
+    "intensity": 0.01
   },
   {
     "x": 0.9,
     "y": 0.02,
-    "intensity": 0.01
+    "intensity": 0.005
   },
   {
     "x": 0.96,
     "y": 0.02,
-    "intensity": 0.005
+    "intensity": 0.003
   },
   {
     "x": 1.0,

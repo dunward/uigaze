@@ -2,236 +2,251 @@
   {
     "x": 0.107,
     "y": 0.078,
-    "intensity": 0.95
+    "intensity": 0.65
   },
   {
-    "x": 0.292,
-    "y": 0.088,
-    "intensity": 0.85
+    "x": 0.257,
+    "y": 0.058,
+    "intensity": 0.45
   },
   {
-    "x": 0.495,
-    "y": 0.088,
-    "intensity": 0.88
+    "x": 0.431,
+    "y": 0.058,
+    "intensity": 0.45
   },
   {
-    "x": 0.718,
-    "y": 0.088,
-    "intensity": 0.86
+    "x": 0.637,
+    "y": 0.058,
+    "intensity": 0.45
   },
   {
     "x": 0.875,
     "y": 0.083,
-    "intensity": 0.92
-  },
-  {
-    "x": 0.75,
-    "y": 0.02,
-    "intensity": 0.7
-  },
-  {
-    "x": 0.838,
-    "y": 0.02,
     "intensity": 0.65
   },
   {
-    "x": 0.903,
-    "y": 0.02,
-    "intensity": 0.65
+    "x": 0.751,
+    "y": 0.018,
+    "intensity": 0.45
   },
   {
-    "x": 0.973,
-    "y": 0.02,
-    "intensity": 0.65
+    "x": 0.837,
+    "y": 0.018,
+    "intensity": 0.45
+  },
+  {
+    "x": 0.905,
+    "y": 0.018,
+    "intensity": 0.45
+  },
+  {
+    "x": 0.971,
+    "y": 0.018,
+    "intensity": 0.45
   },
   {
     "x": 0.054,
     "y": 0.156,
-    "intensity": 0.75
+    "intensity": 0.45
   },
   {
     "x": 0.133,
     "y": 0.156,
-    "intensity": 0.72
+    "intensity": 0.45
   },
   {
-    "x": 0.223,
+    "x": 0.221,
     "y": 0.156,
-    "intensity": 0.72
+    "intensity": 0.45
   },
   {
     "x": 0.311,
     "y": 0.156,
-    "intensity": 0.72
+    "intensity": 0.45
   },
   {
     "x": 0.761,
     "y": 0.156,
-    "intensity": 0.68
+    "intensity": 0.45
   },
   {
     "x": 0.789,
     "y": 0.156,
-    "intensity": 0.68
+    "intensity": 0.45
   },
   {
-    "x": 0.849,
+    "x": 0.848,
     "y": 0.156,
-    "intensity": 0.65
+    "intensity": 0.45
   },
   {
     "x": 0.929,
     "y": 0.156,
+    "intensity": 0.45
+  },
+  {
+    "x": 0.279,
+    "y": 0.243,
     "intensity": 0.65
   },
   {
-    "x": 0.28,
-    "y": 0.244,
-    "intensity": 0.98
-  },
-  {
-    "x": 0.13,
-    "y": 0.33,
-    "intensity": 0.82
+    "x": 0.129,
+    "y": 0.329,
+    "intensity": 0.65
   },
   {
     "x": 0.106,
     "y": 0.473,
-    "intensity": 0.75
+    "intensity": 0.45
   },
   {
     "x": 0.476,
     "y": 0.346,
-    "intensity": 0.88
+    "intensity": 0.65
   },
   {
     "x": 0.541,
     "y": 0.384,
-    "intensity": 0.78
+    "intensity": 0.45
   },
   {
     "x": 0.541,
     "y": 0.419,
-    "intensity": 0.78
-  },
-  {
-    "x": 0.588,
-    "y": 0.46,
-    "intensity": 0.85
+    "intensity": 0.45
   },
   {
     "x": 0.436,
-    "y": 0.457,
-    "intensity": 0.75
+    "y": 0.456,
+    "intensity": 0.45
+  },
+  {
+    "x": 0.588,
+    "y": 0.459,
+    "intensity": 0.65
   },
   {
     "x": 0.813,
     "y": 0.346,
-    "intensity": 0.88
+    "intensity": 0.65
   },
   {
     "x": 0.86,
     "y": 0.384,
-    "intensity": 0.78
+    "intensity": 0.45
   },
   {
     "x": 0.86,
     "y": 0.419,
-    "intensity": 0.78
-  },
-  {
-    "x": 0.907,
-    "y": 0.46,
-    "intensity": 0.85
+    "intensity": 0.45
   },
   {
     "x": 0.76,
-    "y": 0.457,
-    "intensity": 0.75
+    "y": 0.456,
+    "intensity": 0.45
+  },
+  {
+    "x": 0.907,
+    "y": 0.459,
+    "intensity": 0.65
   },
   {
     "x": 0.174,
-    "y": 0.604,
-    "intensity": 0.95
+    "y": 0.603,
+    "intensity": 0.65
   },
   {
-    "x": 0.138,
+    "x": 0.137,
     "y": 0.703,
-    "intensity": 0.75
+    "intensity": 0.45
+  },
+  {
+    "x": 0.396,
+    "y": 0.578,
+    "intensity": 0.65
   },
   {
     "x": 0.342,
-    "y": 0.627,
-    "intensity": 0.85
+    "y": 0.626,
+    "intensity": 0.65
   },
   {
     "x": 0.339,
     "y": 0.718,
-    "intensity": 0.75
+    "intensity": 0.45
   },
   {
-    "x": 0.533,
-    "y": 0.627,
-    "intensity": 0.85
+    "x": 0.59,
+    "y": 0.578,
+    "intensity": 0.65
+  },
+  {
+    "x": 0.532,
+    "y": 0.626,
+    "intensity": 0.65
   },
   {
     "x": 0.539,
     "y": 0.738,
-    "intensity": 0.75
+    "intensity": 0.45
+  },
+  {
+    "x": 0.768,
+    "y": 0.578,
+    "intensity": 0.65
   },
   {
     "x": 0.726,
-    "y": 0.627,
-    "intensity": 0.85
+    "y": 0.626,
+    "intensity": 0.65
   },
   {
     "x": 0.712,
     "y": 0.718,
-    "intensity": 0.75
+    "intensity": 0.45
   },
   {
     "x": 0.161,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
     "x": 0.248,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
     "x": 0.314,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
     "x": 0.378,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
     "x": 0.464,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
     "x": 0.558,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
-    "x": 0.646,
+    "x": 0.645,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
-    "x": 0.739,
+    "x": 0.738,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   },
   {
-    "x": 0.837,
+    "x": 0.836,
     "y": 0.983,
-    "intensity": 0.5
+    "intensity": 0.45
   }
 ]

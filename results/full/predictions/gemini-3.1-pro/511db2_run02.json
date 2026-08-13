@@ -1,322 +1,252 @@
 [
   {
-    "x": 0.401,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 1.0
-  },
-  {
-    "x": 0.626,
-    "y": 1.0,
-    "intensity": 0.96
-  },
-  {
-    "x": 0.739,
-    "y": 1.0,
-    "intensity": 0.88
-  },
-  {
-    "x": 0.701,
-    "y": 1.0,
-    "intensity": 0.88
-  },
-  {
-    "x": 0.594,
-    "y": 1.0,
-    "intensity": 0.88
-  },
-  {
-    "x": 0.829,
-    "y": 1.0,
-    "intensity": 0.84
+    "intensity": 0.5
   },
   {
     "x": 0.103,
     "y": 1.0,
-    "intensity": 0.84
+    "intensity": 0.5
   },
   {
-    "x": 0.133,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.84
+    "intensity": 0.5
   },
   {
-    "x": 0.433,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.84
+    "intensity": 0.5
   },
   {
-    "x": 0.604,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.84
+    "intensity": 0.5
   },
   {
-    "x": 0.897,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.8
+    "intensity": 0.5
   },
   {
-    "x": 0.897,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.8
+    "intensity": 0.5
   },
   {
-    "x": 0.897,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.8
+    "intensity": 0.5
   },
   {
-    "x": 0.275,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.8
+    "intensity": 0.5
   },
   {
-    "x": 0.455,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.8
+    "intensity": 0.5
   },
   {
-    "x": 0.652,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.8
+    "intensity": 0.5
   },
   {
-    "x": 0.871,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.8
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.365,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.425,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.493,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.564,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.633,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.697,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.758,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.817,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.881,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.945,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.76
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.101,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.72
+    "intensity": 0.5
   },
   {
-    "x": 0.082,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.151,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.236,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.307,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.358,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.409,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.453,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.625,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.66,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.707,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.758,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.813,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
+    "intensity": 0.5
   },
   {
-    "x": 0.864,
+    "x": 0.103,
     "y": 1.0,
-    "intensity": 0.68
-  },
-  {
-    "x": 0.91,
-    "y": 1.0,
-    "intensity": 0.68
-  },
-  {
-    "x": 0.957,
-    "y": 1.0,
-    "intensity": 0.68
-  },
-  {
-    "x": 0.307,
-    "y": 1.0,
-    "intensity": 0.64
-  },
-  {
-    "x": 0.358,
-    "y": 1.0,
-    "intensity": 0.64
-  },
-  {
-    "x": 0.409,
-    "y": 1.0,
-    "intensity": 0.64
-  },
-  {
-    "x": 0.455,
-    "y": 1.0,
-    "intensity": 0.64
-  },
-  {
-    "x": 0.501,
-    "y": 1.0,
-    "intensity": 0.64
-  },
-  {
-    "x": 0.547,
-    "y": 1.0,
-    "intensity": 0.64
-  },
-  {
-    "x": 0.593,
-    "y": 1.0,
-    "intensity": 0.64
+    "intensity": 0.5
   }
 ]
