@@ -75,8 +75,9 @@ def run_full(
             print(f"  Pending: {len(pending)}/{len(dataset)} images")
 
             image_paths = [s.image_path for s in pending]
+            raw_dir = OUTPUT_DIR / "raw_responses" / model_name / f"run{run:02d}"
             predictions = predict_batch(
-                image_paths, model=model_name, concurrency=concurrency
+                image_paths, model=model_name, concurrency=concurrency, raw_dir=raw_dir
             )
 
             saved = 0

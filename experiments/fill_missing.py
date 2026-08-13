@@ -29,6 +29,7 @@ async def fill_missing(
     output_dir = Path(__file__).parent.parent / "results" / target
     pred_dir = output_dir / "predictions" / model
     pred_dir.mkdir(parents=True, exist_ok=True)
+    raw_base = output_dir / "raw_responses" / model
 
     samples = _resolve_samples(target, data_dir)
     samples_by_id = {s.image_id: s for s in samples}
@@ -66,7 +67,15 @@ async def fill_missing(
             sample = samples_by_id[img_id]
             print(f"  [{idx+1}/{len(missing)}] {img_id} run {run}", flush=True)
             try:
-                points = await predict_saliency_async(sample.image_path, model=model)
+                points, raw = await predict_saliency_async(
+                    sample.image_path, model=model, return_raw=True)
+
+                # Keep the raw response alongside run_full's, so coordinate-scale
+                # claims stay auditable for every saved prediction.
+                raw_dir = raw_base / f"run{run:02d}"
+                raw_dir.mkdir(parents=True, exist_ok=True)
+                (raw_dir / f"{img_id}.txt").write_text(raw)
+
                 if not points:
                     print(f"    SKIP {img_id} run {run} (no predictions returned)", flush=True)
                     errors += 1

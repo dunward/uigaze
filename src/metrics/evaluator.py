@@ -81,17 +81,38 @@ def compute_auc(pred: np.ndarray, fixation_map: np.ndarray) -> float:
     tp_rate[-1], fp_rate[-1] = 1.0, 1.0
 
     n_neg = len(neg_values)
-    for i, thresh in enumerate(thresholds):
-        tp_rate[i + 1] = (i + 1) / n_fixations
-        fp_rate[i + 1] = (neg_values >= thresh).sum() / n_neg
+    neg_sorted = np.sort(neg_values)
+    tp_rate[1:-1] = np.arange(1, n_fixations + 1) / n_fixations
+    fp_rate[1:-1] = (n_neg - np.searchsorted(neg_sorted, thresholds, side="left")) / n_neg
 
-    return float(np.trapz(tp_rate, fp_rate))
+    return float(np.trapezoid(tp_rate, fp_rate))
+
+
+def compute_cc_partial(pred: np.ndarray, gt: np.ndarray, prior: np.ndarray) -> float:
+    """Partial correlation between pred and gt, controlling for a prior map.
+
+    Measures the image-specific alignment that remains after removing the
+    component both maps share with a generic prior (e.g. the dataset mean map).
+    """
+    p, g, c = pred.flatten(), gt.flatten(), prior.flatten()
+    if p.std() == 0 or g.std() == 0 or c.std() == 0:
+        return 0.0
+
+    rpg = np.corrcoef(p, g)[0, 1]
+    rpc = np.corrcoef(p, c)[0, 1]
+    rgc = np.corrcoef(g, c)[0, 1]
+    den = np.sqrt((1 - rpc**2) * (1 - rgc**2))
+    if not np.isfinite(den) or den == 0:
+        return 0.0
+
+    return float((rpg - rpc * rgc) / den)
 
 
 def evaluate_all(
     pred: np.ndarray,
     gt: np.ndarray,
     fixation_map: np.ndarray | None = None,
+    prior: np.ndarray | None = None,
 ) -> dict[str, float]:
     """Compute all saliency metrics.
 
@@ -99,6 +120,8 @@ def evaluate_all(
         pred: Predicted saliency map.
         gt: Ground truth saliency map (continuous).
         fixation_map: Binary fixation map. If None, NSS and AUC are skipped.
+        prior: Generic prior map (e.g. leave-one-out dataset mean). If given,
+            CC_partial (prior-controlled correlation) is included.
 
     Returns:
         Dict with metric names as keys and scores as values.
@@ -112,5 +135,8 @@ def evaluate_all(
     if fixation_map is not None:
         results["NSS"] = compute_nss(pred, fixation_map)
         results["AUC"] = compute_auc(pred, fixation_map)
+
+    if prior is not None:
+        results["CC_partial"] = compute_cc_partial(pred, gt, prior)
 
     return results

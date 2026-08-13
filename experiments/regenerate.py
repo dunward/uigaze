@@ -18,9 +18,19 @@ from src.saliency.generator import generate_saliency_map
 from src.metrics.evaluator import evaluate_all
 from src.analysis.visualizer import plot_saliency_comparison
 from src.data_loader import load_dataset, sample_pilot
+from experiments.baselines import CANONICAL, load_fixmap, resize_map
 
-METRICS = ["CC", "SIM", "KL"]
+METRICS = ["CC", "SIM", "KL", "NSS", "AUC", "CC_partial"]
 DURATIONS = ["1s", "3s", "7s"]
+
+_PRIORS: dict[str, dict] = {}
+
+
+def _get_priors(npz_path: str) -> dict:
+    if npz_path not in _PRIORS:
+        data = np.load(npz_path, allow_pickle=True)
+        _PRIORS[npz_path] = {k: data[k] for k in data.files}
+    return _PRIORS[npz_path]
 
 
 def load_ground_truth(heatmap_path: Path) -> np.ndarray:
@@ -33,7 +43,7 @@ def load_ground_truth(heatmap_path: Path) -> np.ndarray:
 
 def _compute_one(task):
     """Worker function: load prediction + GT, compute metrics. Runs in a subprocess."""
-    pred_file, heatmap_path, model_name, image_id, run, category = task
+    pred_file, heatmap_path, fixmap_path, priors_npz, model_name, image_id, run, category = task
     points_data = json.loads(Path(pred_file).read_text())
     points = [GazePoint(**p) for p in points_data]
     if not points:
@@ -41,7 +51,21 @@ def _compute_one(task):
     gt = load_ground_truth(Path(heatmap_path))
     h, w = gt.shape
     pred = generate_saliency_map(points, width=w, height=h)
-    metrics = evaluate_all(pred, gt)
+
+    fixmap = None
+    if fixmap_path and Path(fixmap_path).exists():
+        fixmap = load_fixmap(Path(fixmap_path))
+        if fixmap.shape != gt.shape or not fixmap.any():
+            fixmap = None
+
+    prior = None
+    if priors_npz:
+        priors = _get_priors(priors_npz)
+        gt_canon = resize_map(gt, *CANONICAL)
+        loo = (priors["sum_global"] - gt_canon) / (int(priors["n_total"]) - 1)
+        prior = resize_map(loo / loo.max(), h, w)
+
+    metrics = evaluate_all(pred, gt, fixation_map=fixmap, prior=prior)
     return {
         "model": model_name,
         "run": run,
@@ -60,6 +84,16 @@ def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, dat
 
     dur_dir = results_dir / duration / "raw"
     heatmap_dir = Path(data_dir) / "saliency_maps" / f"heatmaps_{duration}"
+    fixmap_dir = Path(data_dir) / "saliency_maps" / f"fixmaps_{duration}"
+    priors_npz = results_dir / "baselines" / duration / "gt_priors.npz"
+    if not priors_npz.exists():
+        print(f"  WARNING: {priors_npz} not found - CC_partial will be skipped. "
+              "Run experiments/baselines.py first.")
+        priors_npz = None
+
+    def _cache_ok(csv_path: Path) -> bool:
+        # Only reuse cached CSVs that already contain every current metric.
+        return csv_path.exists() and set(METRICS) <= set(pd.read_csv(csv_path, nrows=0).columns)
 
     all_results = []
     tasks = []
@@ -78,7 +112,7 @@ def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, dat
 
         if models is None:
             existing_csv = dur_dir / f"{model_name}.csv"
-            if existing_csv.exists():
+            if _cache_ok(existing_csv):
                 existing = pd.read_csv(existing_csv)
                 all_results.extend(existing.to_dict("records"))
                 print(f"  {model_name}: loaded from cache")
@@ -100,7 +134,13 @@ def recompute_metrics(results_dir: Path, samples_by_id: dict, duration: str, dat
             if not heatmap_path.exists():
                 continue
 
-            tasks.append((str(pred_file), str(heatmap_path), model_name, image_id, run, sample.category))
+            fixmap_path = fixmap_dir / sample.image_path.name
+            tasks.append((
+                str(pred_file), str(heatmap_path),
+                str(fixmap_path) if fixmap_path.exists() else None,
+                str(priors_npz) if priors_npz else None,
+                model_name, image_id, run, sample.category,
+            ))
 
     if not tasks:
         return pd.DataFrame(all_results)
@@ -163,13 +203,14 @@ def regenerate(target: str = "pilot", data_dir: str = "data", durations: list[st
             model_df.to_csv(raw_dir / f"{model_name}.csv", index=False)
 
         # Per-image stats
-        image_avg = df.groupby(["model", "category", "image_id"])[METRICS].agg(["mean", "min", "max"])
+        avail_metrics = [m for m in METRICS if m in df.columns]
+        image_avg = df.groupby(["model", "category", "image_id"])[avail_metrics].agg(["mean", "min", "max"])
         image_avg.columns = [f"{m}_{s}" for m, s in image_avg.columns]
         image_avg = image_avg.reset_index()
         image_avg.to_csv(dur_dir / "per_image_avg.csv", index=False)
 
         # Summary by model
-        mean_cols = [f"{m}_mean" for m in METRICS]
+        mean_cols = [f"{m}_mean" for m in avail_metrics]
         model_summary = image_avg.groupby("model")[mean_cols].agg(["mean", "std"])
         model_summary.columns = [f"{m}_{s}" for m, s in model_summary.columns]
         model_summary = model_summary.reset_index()

@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import io
 import json
 import os
 import time
@@ -7,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from dotenv import load_dotenv
+from PIL import Image
 from openrouter import OpenRouter
 from openrouter.components.chatformatjsonschemaconfig import (
     ChatFormatJSONSchemaConfig,
@@ -108,10 +110,27 @@ def _detect_media_type(data: bytes) -> str:
     return "image/png"
 
 
+# Anthropic limits images to 5MB after base64 encoding. Apply same cap globally.
+_MAX_BASE64_BYTES = 5 * 1024 * 1024
+_DOWNSCALE_LONG_SIDE = 2048
+
+
 def _encode_image(image_path: Path) -> str:
-    """Encode image to base64 data URI with actual format detection."""
+    """Encode image to base64 data URI; auto-downscale if it exceeds provider size caps."""
     data = image_path.read_bytes()
     media_type = _detect_media_type(data)
+
+    # Quick size check — base64 inflates ~33%, so raw bytes ~> 3.75MB will exceed the cap.
+    if len(data) * 4 // 3 > _MAX_BASE64_BYTES:
+        img = Image.open(io.BytesIO(data)).convert("RGB")
+        long = max(img.size)
+        if long > _DOWNSCALE_LONG_SIDE:
+            img.thumbnail((_DOWNSCALE_LONG_SIDE, _DOWNSCALE_LONG_SIDE))
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=90, optimize=True)
+        data = buf.getvalue()
+        media_type = "image/jpeg"
+
     b64 = base64.b64encode(data).decode("utf-8")
     return f"data:{media_type};base64,{b64}"
 
@@ -170,6 +189,7 @@ def predict_saliency(
     """Call a VLM via OpenRouter to predict saliency points (sync)."""
     image_path = Path(image_path)
     model_id = MODELS.get(model, model)
+    image_size = Image.open(image_path).size
     image_uri = _encode_image(image_path)
 
     provider = _get_provider_prefs(model_id)
@@ -185,17 +205,20 @@ def predict_saliency(
             plugins=[ResponseHealingPlugin(id="response-healing")],
         )
 
-    return _parse_gaze_points(response.choices[0].message.content)
+    return _parse_gaze_points(response.choices[0].message.content,
+                              image_size=image_size, model=model)
 
 
 async def predict_saliency_async(
     image_path: str | Path,
     model: str = "gpt-5.4-mini",
     api_key: str | None = None,
-) -> list[GazePoint]:
+    return_raw: bool = False,
+) -> list[GazePoint] | tuple[list[GazePoint], str]:
     """Call a VLM via OpenRouter to predict saliency points (async)."""
     image_path = Path(image_path)
     model_id = MODELS.get(model, model)
+    image_size = Image.open(image_path).size
     image_uri = _encode_image(image_path)
 
     provider = _get_provider_prefs(model_id)
@@ -211,7 +234,9 @@ async def predict_saliency_async(
             plugins=[ResponseHealingPlugin(id="response-healing")],
         )
 
-    return _parse_gaze_points(response.choices[0].message.content)
+    content = response.choices[0].message.content
+    points = _parse_gaze_points(content, image_size=image_size, model=model)
+    return (points, content) if return_raw else points
 
 
 async def predict_batch_async(
@@ -219,6 +244,7 @@ async def predict_batch_async(
     model: str = "gpt-5.4-mini",
     api_key: str | None = None,
     concurrency: int = 10,
+    raw_dir: Path | None = None,
 ) -> dict[str, list[GazePoint]]:
     """Run saliency prediction on multiple images concurrently.
 
@@ -234,11 +260,19 @@ async def predict_batch_async(
     semaphore = asyncio.Semaphore(concurrency)
     results = {}
 
+    if raw_dir is not None:
+        raw_dir.mkdir(parents=True, exist_ok=True)
+
     async def _predict_one(path: Path, idx: int):
         async with semaphore:
             print(f"  [{idx+1}/{len(image_paths)}] {path.name} ({model})")
             try:
-                points = await predict_saliency_async(path, model=model, api_key=api_key)
+                if raw_dir is not None:
+                    points, raw = await predict_saliency_async(
+                        path, model=model, api_key=api_key, return_raw=True)
+                    (raw_dir / f"{path.stem}.txt").write_text(raw)
+                else:
+                    points = await predict_saliency_async(path, model=model, api_key=api_key)
                 results[path.stem] = points
             except Exception as e:
                 print(f"    ERROR [{type(e).__name__}]: {e}")
@@ -254,15 +288,65 @@ def predict_batch(
     model: str = "gpt-5.4-mini",
     api_key: str | None = None,
     concurrency: int = 10,
+    raw_dir: Path | None = None,
 ) -> dict[str, list[GazePoint]]:
     """Run saliency prediction on multiple images concurrently (sync wrapper)."""
     return asyncio.run(
-        predict_batch_async(image_paths, model=model, api_key=api_key, concurrency=concurrency)
+        predict_batch_async(image_paths, model=model, api_key=api_key,
+                            concurrency=concurrency, raw_dir=raw_dir)
     )
 
 
-def _parse_gaze_points(content: str) -> list[GazePoint]:
-    """Parse VLM response text into GazePoint list."""
+# Models documented to emit absolute pixel coordinates (UI-TARS) vs the
+# Gemini-style 0-1000 grid. Used only to disambiguate responses whose
+# coordinates exceed 100 but stay within both candidate ranges.
+_PIXEL_COORD_MODELS = ("ui-tars",)
+
+
+def _axis_divisor(
+    vals: list[float],
+    dim: int | None,
+    model: str | None,
+) -> float:
+    """Infer the large-scale divisor for one axis from its out-of-range values.
+
+    Models sometimes ignore the normalized-coordinate instruction and answer on
+    another scale — observed in raw responses: 0-10, percent, 0-1000 grid, and
+    absolute pixels, with x and y frequently on DIFFERENT scales in the same
+    response (e.g., normalized x with pixel y). Values <= 1.5 are treated as
+    already normalized and never rescaled; the divisor below applies only to the
+    axis's larger values.
+    """
+    big = [abs(v) for v in vals if abs(v) > 1.5]
+    if not big:
+        return 1.0
+    m = max(big)
+    if m <= 15:
+        return 10.0
+    if m <= 150:
+        return 100.0
+    if dim:
+        fits_pixels = m <= dim * 1.05
+        exceeds_grid = m > 1000
+        prefers_pixels = model and any(k in model for k in _PIXEL_COORD_MODELS)
+        if fits_pixels and (exceeds_grid or prefers_pixels):
+            return float(dim)
+    if m <= 1050:
+        return 1000.0
+    return float(dim) if dim else m  # last resort: squash into range
+
+
+def _rescale_value(v: float, divisor: float) -> float:
+    """Rescale one coordinate: values already in [0, 1.5] pass through."""
+    return v if abs(v) <= 1.5 else v / divisor
+
+
+def _parse_gaze_points(
+    content: str,
+    image_size: tuple[int, int] | None = None,
+    model: str | None = None,
+) -> list[GazePoint]:
+    """Parse VLM response text into GazePoint list (scale-aware)."""
     text = content.strip()
 
     try:
@@ -282,11 +366,28 @@ def _parse_gaze_points(content: str) -> list[GazePoint]:
     else:
         raise ValueError(f"Unexpected JSON type: {type(parsed)}")
 
+    valid = [p for p in points_data
+             if isinstance(p, dict) and all(k in p for k in ("x", "y", "intensity"))]
+    if len(valid) < len(points_data):
+        print(f"    WARN: skipped {len(points_data) - len(valid)} malformed points")
+    if not valid:
+        return []
+
+    xs = [float(p["x"]) for p in valid]
+    ys = [float(p["y"]) for p in valid]
+    w, h = image_size if image_size else (None, None)
+    div_x = _axis_divisor(xs, w, model)
+    div_y = _axis_divisor(ys, h, model)
+
+    intensities = [float(p["intensity"]) for p in valid]
+    div_i = _axis_divisor(intensities, None, None)
+
     gaze_points = []
-    for p in points_data:
-        x = max(0.0, min(1.0, float(p["x"])))
-        y = max(0.0, min(1.0, float(p["y"])))
-        intensity = max(0.0, min(1.0, float(p["intensity"])))
-        gaze_points.append(GazePoint(x=x, y=y, intensity=intensity))
+    for x, y, intensity in zip(xs, ys, intensities):
+        gaze_points.append(GazePoint(
+            x=max(0.0, min(1.0, _rescale_value(x, div_x))),
+            y=max(0.0, min(1.0, _rescale_value(y, div_y))),
+            intensity=max(0.0, min(1.0, _rescale_value(intensity, div_i))),
+        ))
 
     return gaze_points
