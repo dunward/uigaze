@@ -27,6 +27,16 @@ LABELS = {"gpt-5.4": "GPT-5.4", "gemini-3.1-flash-lite": "Gemini 3.1 Flash Lite"
           "ui-tars-1.5": "UI-TARS 1.5"}
 DURS = ["1s", "3s", "7s"]
 
+# Axis tick labels, kept identical across figures so the same model reads the
+# same way everywhere.
+SHORT = {
+    "gpt-5.4": "GPT-5.4", "gpt-5.4-mini": "GPT-5.4-mini",
+    "gemini-3.1-pro": "Gemini 3.1 Pro", "gemini-3.1-flash-lite": "Gemini 3.1 Flash Lite",
+    "claude-opus-4.6": "Claude Opus 4.6", "claude-sonnet-4.6": "Claude Sonnet 4.6",
+    "qwen-3.5-plus": "Qwen 3.5 Plus", "qwen-3.5-flash": "Qwen 3.5 Flash",
+    "ui-tars-1.5": "UI-TARS 1.5",
+}
+
 plt.rcParams.update({
     "font.family": "sans-serif", "font.size": 8.5,
     "axes.edgecolor": GRAY_LINE, "axes.labelcolor": INK,
@@ -126,8 +136,7 @@ def fig_category():
         y = np.arange(len(order))
         ax.barh(y, means, xerr=ci, color=BLUE, height=0.62,
                 error_kw={"ecolor": MUTED, "elinewidth": 0.8})
-        ax.set_yticks(y, [m.replace("claude-", "claude ").replace("gemini-", "gemini ")
-                          for m in order], fontsize=7)
+        ax.set_yticks(y, [SHORT[m] for m in order], fontsize=7)
         ax.set_title(cat, fontsize=9, color=INK, loc="left")
         ax.grid(axis="x", color=GRID, linewidth=0.6)
         ax.grid(axis="y", visible=False)
@@ -138,30 +147,37 @@ def fig_category():
 
 
 def fig_scale_artifact():
-    """Effect of the coordinate-scale fix: CC at 7s before vs after re-collection."""
-    before = pd.read_csv(RESULTS / "clamped_era" / "summary_by_model_7s.csv"
-                         ).set_index("model")["CC_mean_mean"]
-    after = pd.read_csv(RESULTS / "7s" / "summary_by_model.csv"
-                        ).set_index("model")["CC_mean_mean"]
-    order = after.sort_values().index
+    """Three-cell decomposition: parser effect and collection-time effect.
+
+    Re-parsing the retained August responses with the original clamping parser
+    supplies the middle bar, which holds collection time fixed and isolates the
+    parser; comparing that bar to April holds the parser fixed and isolates time.
+    """
+    dec = pd.read_csv(RESULTS / "parser_vs_time" / "summary.csv").set_index("model")
+    order = dec["aug_new"].sort_values().index
     y = np.arange(len(order))
 
-    fig, ax = plt.subplots(figsize=(3.6, 2.9), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(5.2, 2.4), constrained_layout=True)
     style_ax(ax)
     ax.grid(axis="x", color=GRID, linewidth=0.6)
     ax.grid(axis="y", visible=False)
-    ax.barh(y - 0.19, before[order], height=0.34, color=GRAY_LINE, label="as originally parsed")
-    ax.barh(y + 0.19, after[order], height=0.34, color=BLUE, label="scale-aware re-collection")
+    bars = [("apr_old", GRAY_LINE, "April · clamping"),
+            ("aug_old", ORANGE, "August · clamping"),
+            ("aug_new", BLUE, "August · scale-aware")]
+    for off, (col, color, label) in zip((-0.26, 0.0, 0.26), bars):
+        ax.barh(y + off, dec.loc[order, col], height=0.24, color=color, label=label)
+
     for i, m in enumerate(order):
-        d = after[m] - before[m]
-        if d > 0.01:
-            ax.annotate(f"+{d:.2f}", (after[m] + 0.008, i + 0.19), fontsize=6.5,
-                        color=INK, va="center")
-    ax.set_yticks(y, [m.replace("claude-", "claude ").replace("gemini-3.1-", "gemini ")
-                      for m in order], fontsize=7)
+        p, t = dec.loc[m, "parser_effect"], dec.loc[m, "time_effect"]
+        ax.annotate(f"parser {p:+.2f}   time {t:+.2f}",
+                    (dec.loc[m, "aug_new"] + 0.01, i), fontsize=6.5,
+                    color=INK, va="center")
+    ax.set_yticks(y, [SHORT[m] for m in order], fontsize=7.5)
     ax.set_xlabel("CC at 7 s", color=INK)
-    ax.set_xlim(0, 0.47)
-    ax.legend(fontsize=6.5, frameon=False, loc="lower right")
+    ax.set_xlim(0, 0.56)
+    ax.legend(fontsize=6.5, frameon=False, loc="lower center",
+              bbox_to_anchor=(0.5, 1.0), ncol=3, borderaxespad=0,
+              columnspacing=1.0, handlelength=1.2, handletextpad=0.4)
     fig.savefig(OUT / "fig_scale_artifact.pdf")
     plt.close(fig)
 

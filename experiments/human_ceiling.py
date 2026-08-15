@@ -17,6 +17,7 @@ import os
 import pickle
 import sys
 import time
+import zlib
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
@@ -27,8 +28,9 @@ from scipy.ndimage import gaussian_filter
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.metrics.evaluator import compute_cc, compute_sim, compute_kl
+from src.metrics.evaluator import compute_cc, compute_sim, compute_kl, compute_cc_partial
 from src.data_loader import load_dataset
+from experiments.baselines import CANONICAL, resize_map
 
 SCREEN_W, SCREEN_H = 1920, 1200
 SIGMA = 40.0
@@ -110,11 +112,25 @@ def validate(index: pd.DataFrame, samples_by_name: dict, n: int = 30):
     return best == "letterbox", {m: float(np.mean(v)) for m, v in scores.items()}
 
 
+_PRIORS: dict[str, dict] = {}
+
+
+def _prior_for(npz_path: str, gt: np.ndarray, h: int, w: int) -> np.ndarray:
+    """Leave-one-out dataset prior resized to this image, as in baselines.py."""
+    if npz_path not in _PRIORS:
+        d = np.load(npz_path)
+        _PRIORS[npz_path] = {"sum": d["sum_global"], "n": int(d["n_total"])}
+    p = _PRIORS[npz_path]
+    loo = (p["sum"] - resize_map(gt, *CANONICAL)) / (p["n"] - 1)
+    return resize_map(loo / loo.max(), h, w)
+
+
 def _ioc_one(task):
-    name, heatmap_path, category, image_id, grp_pickle, letterbox = task
+    name, heatmap_path, category, image_id, grp_pickle, letterbox, priors = task
     g = pickle.loads(grp_pickle)
-    gt_shape = np.array(Image.open(heatmap_path).convert("L")).shape
-    h, w = gt_shape
+    gt_arr = np.array(Image.open(heatmap_path).convert("L"), dtype=np.float64)
+    gt_norm = gt_arr / gt_arr.max() if gt_arr.max() > 0 else gt_arr
+    h, w = gt_arr.shape
     participants = sorted(g["participant"].unique())
     if len(participants) < 4:
         return []
@@ -122,7 +138,9 @@ def _ioc_one(task):
     keep = (x >= -0.02) & (x <= 1.02) & (y >= -0.02) & (y <= 1.02)
     g = g.loc[keep].assign(ix=np.clip(x[keep], 0, 1), iy=np.clip(y[keep], 0, 1))
 
-    rng = np.random.default_rng(SEED + hash(image_id) % 10_000)
+    # zlib.crc32 rather than hash(): Python randomizes str hashing per process,
+    # which would make the split assignment irreproducible across runs.
+    rng = np.random.default_rng(SEED + zlib.crc32(image_id.encode()) % 10_000)
     rows = []
     for dur_label, window in DURATIONS.items():
         gd = g[g["FPOGS"] < window]
@@ -135,17 +153,31 @@ def _ioc_one(task):
             ma = splat_map(ga["ix"].values, ga["iy"].values, ga["FPOGD"].values, w, h)
             mb = splat_map(gb["ix"].values, gb["iy"].values, gb["FPOGD"].values, w, h)
             cc = compute_cc(ma, mb)
-            rows.append({
+            row = {
                 "image_id": image_id, "category": category, "duration": dur_label,
                 "split": split, "n_participants": len(participants),
                 "CC": cc, "CC_sb": 2 * cc / (1 + cc) if cc > -1 else np.nan,
                 "SIM": compute_sim(ma, mb), "KL": compute_kl(ma, mb),
-            })
+            }
+            # Ceiling for the primary metric: agreement between two halves of the
+            # participants after removing what both share with the dataset prior.
+            prior_path = priors.get(dur_label)
+            if prior_path:
+                prior = _prior_for(prior_path, gt_norm, h, w)
+                row["CC_partial"] = compute_cc_partial(ma, mb, prior)
+            rows.append(row)
     return rows
 
 
 def run_ioc(index: pd.DataFrame, samples_by_name: dict, out_dir: Path,
             letterbox: bool, workers: int | None):
+    # Per-duration leave-one-out priors, reused from the baseline computation.
+    base = Path(__file__).parent.parent / "results" / "full" / "baselines"
+    priors = {d: str(base / d / "gt_priors.npz") for d in DURATIONS
+              if (base / d / "gt_priors.npz").exists()}
+    if len(priors) < len(DURATIONS):
+        print(f"  WARNING: priors found for {sorted(priors)} only; "
+              "CC_partial skipped elsewhere. Run experiments/baselines.py first.")
     tasks = []
     for name, g in index.groupby("MEDIA_NAME"):
         s = samples_by_name.get(name)
@@ -153,7 +185,7 @@ def run_ioc(index: pd.DataFrame, samples_by_name: dict, out_dir: Path,
             continue
         tasks.append((name, str(s.heatmap_path), s.category, s.image_id,
                       pickle.dumps(g[["participant", "FPOGX", "FPOGY", "FPOGS", "FPOGD"]]),
-                      letterbox))
+                      letterbox, priors))
     workers = workers or max(1, (os.cpu_count() or 4) - 1)
     print(f"  IOC on {len(tasks)} images x {len(DURATIONS)} durations x {N_SPLITS} splits, "
           f"{workers} workers")
@@ -172,12 +204,13 @@ def run_ioc(index: pd.DataFrame, samples_by_name: dict, out_dir: Path,
     df = pd.DataFrame(all_rows)
     out_dir.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_dir / "ioc_raw.csv", index=False)
-    per_image = df.groupby(["duration", "category", "image_id"])[["CC", "CC_sb", "SIM", "KL"]].mean().reset_index()
+    metrics = [c for c in ["CC", "CC_sb", "CC_partial", "SIM", "KL"] if c in df.columns]
+    per_image = df.groupby(["duration", "category", "image_id"])[metrics].mean().reset_index()
     per_image.to_csv(out_dir / "ioc_per_image.csv", index=False)
-    summary = per_image.groupby("duration")[["CC", "CC_sb", "SIM", "KL"]].agg(["mean", "std"])
+    summary = per_image.groupby("duration")[metrics].agg(["mean", "std"])
     summary.columns = [f"{m}_{s}" for m, s in summary.columns]
     summary.reset_index().to_csv(out_dir / "ioc_summary.csv", index=False)
-    cat = per_image.groupby(["duration", "category"])[["CC", "CC_sb"]].mean().reset_index()
+    cat = per_image.groupby(["duration", "category"])[metrics].mean().reset_index()
     cat.to_csv(out_dir / "ioc_by_category.csv", index=False)
     print("\n  IOC SUMMARY (split-half, mean over images)")
     print(summary.round(3).to_string())
